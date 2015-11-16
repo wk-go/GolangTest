@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"io/ioutil"
 )
 
 type String string
@@ -15,58 +16,23 @@ r *http.Request) {
 	fmt.Fprint(w, self)
 }
 
-type Struct struct {
-	page string
+type WS_handle struct {
 }
 
-func (self *Struct) ServeHTTP(
+func (self *WS_handle) ServeHTTP(
 w http.ResponseWriter,
 r *http.Request) {
-	fmt.Fprint(w, self.page)
+	tpl_file := "./html/ws_client1.html"
+	ws_page,err := ioutil.ReadFile(tpl_file)
+	if err !=nil{
+		fmt.Fprint(w,"Error:There is no template file",tpl_file)
+		return
+	}
+	fmt.Fprint(w, string(ws_page))
 }
 
 func main() {
-
-	http.Handle("/", &Struct{page:ws_page})
-	log.Fatal(http.ListenAndServe("localhost:4000", nil))
+		http.Handle("/", &WS_handle{})
+		log.Fatal(http.ListenAndServe("localhost:4000", nil))
+	
 }
-var ws_page = `<html>
-<head></head>
-<body>
-<script type="text/javascript">
-var sock = null;
-var wsuri = "ws://127.0.0.1:1234";
-
-window.onload = function() {
-
-console.log("onload");
-
-sock = new WebSocket(wsuri);
-
-sock.onopen = function() {
-console.log("connected to " + wsuri);
-}
-
-sock.onclose = function(e) {
-console.log("connection closed (" + e.code + ")");
-}
-
-sock.onmessage = function(e) {
-console.log("message received: " + e.data);
-}
-};
-
-function send() {
-var msg = document.getElementById('message').value;
-sock.send(msg);
-};
-</script>
-<h1>WebSocket Echo Test</h1>
-<form>
-<p>
-Message: <input id="message" type="text" value="Hello, world!">
-</p>
-</form>
-<button onclick="send();">Send Message</button>
-</body>
-</html>`
