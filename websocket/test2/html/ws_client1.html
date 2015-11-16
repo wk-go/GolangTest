@@ -1,0 +1,53 @@
+<html>
+<head></head>
+<body>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>聊天室 Test</title>
+<script type="text/javascript">
+    var sock = null;
+    var wsuri = "ws://127.0.0.1:1234";
+
+    window.onload = function () {
+
+        console.log("onload");
+
+        sock = new WebSocket(wsuri);
+
+        sock.onopen = function () {
+            console.log("connected to " + wsuri);
+        };
+
+        sock.onclose = function (evt) {
+            console.log("connection closed (" + evt.code + ")");
+        };
+
+        sock.onerror = function (evt) {
+            console.log('Error occured: ' + evt.data);
+        };
+
+        //receive msg from server
+        sock.onmessage = function (evt) {
+            console.log("message received: " + evt.data);
+            var msg_cnt = document.getElementById('msg_cnt');
+            msg_cnt.innerHTML+= '<div>'+evt.data+'</div>';
+        }
+    };
+
+    //send a msg to server
+    function send() {
+        var msg = document.getElementById('message').value;
+        sock.send(msg);
+    }
+
+</script>
+<h1>WebSocket Echo Test^_^</h1>
+
+<form>
+    <p>
+        Message: <input id="message" type="text" value="Hello, world!">
+    </p>
+</form>
+<button onclick="send();">Send Message</button>
+<div id="msg_cnt"></div>
+</body>
+</html>
