@@ -6,48 +6,37 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"container/list"
+	"reflect"
 )
 
-type ws_client struct{
-	client map[int]*websocket.Conn
-}
-func (self *ws_client) Append(item *websocket.Conn) {
-	self.client[len(self.client)] = item
-}
-func (self *ws_client) Push(item *websocket.Conn) {
-	self.client[len(self.client)] = item
+type Client struct{
+	ws *websocket.Conn
+	msg *list.List
 }
 
-func (self *ws_client) Pop() *websocket.Conn {
-	tree, ok := self.client[len(self.client) - 1]
-	if ok {
-		delete(self.client, len(self.client) - 1)
-		return tree
-	}
-	return nil
-}
-func (self *ws_client)SendMsg(msg string) (error){
-	if !self.Empty(){
-		for _,ws := range self.client{
-			if err := websocket.Message.Send(ws, msg); err != nil {
-				fmt.Println("Can't send")
-				fmt.Println(ws)
-				return err
+var client_list *list.List
+
+func SendMsg(msg string) (error){
+	if client_list.Len() > 0{
+		for element := client_list.Front(); element != nil; element = element.Next() {
+			if client, ok := element.Value.(*Client); ok{
+				if err := websocket.Message.Send(client.ws, msg); err != nil {
+					fmt.Println("Can't send")
+					client_list.Remove(element)
+				}
+			}else{
+				fmt.Println(element.Value)
+				fmt.Println(reflect.TypeOf(element.Value))
 			}
 		}
 	}
 	return nil
 }
 
-func (self *ws_client) Empty() bool {
-	return len(self.client) == 0
-}
-
-var WSC *ws_client
-
 func Echo(ws *websocket.Conn) {
 	var err error
-	WSC.Push(ws)
+	client_list.PushBack(&Client{ws:ws,msg:list.New()})
 	for {
 		var reply string
 
@@ -60,7 +49,7 @@ func Echo(ws *websocket.Conn) {
 
 		msg := "Received:  " + reply
 		fmt.Println("Sending to client: " + msg)
-		go WSC.SendMsg(msg)
+		go SendMsg(msg)
 		/*if err = websocket.Message.Send(ws, msg); err != nil {
 			fmt.Println("Can't send")
 			break
@@ -69,7 +58,7 @@ func Echo(ws *websocket.Conn) {
 }
 
 func main() {
-	WSC = &ws_client{make(map[int]*websocket.Conn)}
+	client_list = list.New()
 
 	http.Handle("/", websocket.Handler(Echo))
 
