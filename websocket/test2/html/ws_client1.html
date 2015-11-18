@@ -1,53 +1,132 @@
 <html>
-<head></head>
-<body>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<title>聊天室 Test</title>
-<script type="text/javascript">
-    var sock = null;
-    var wsuri = "ws://127.0.0.1:1234";
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>聊天室 Test</title>
+    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
-    window.onload = function () {
+    <script type="text/javascript">
+        var sock = null;
+        var wsuri = "ws://127.0.0.1:1234";
 
-        console.log("onload");
+        window.onload = function () {
 
-        sock = new WebSocket(wsuri);
-
-        sock.onopen = function () {
-            console.log("connected to " + wsuri);
+            console.log("onload");
+            connect()
         };
 
-        sock.onclose = function (evt) {
-            console.log("connection closed (" + evt.code + ")");
-        };
+        function connect() {
+            if (sock != null && sock instanceof WebSocket) {
+                sock.close();
+            }
+            sock = new WebSocket(wsuri);
 
-        sock.onerror = function (evt) {
-            console.log('Error occured: ' + evt.data);
-        };
+            sock.onopen = function () {
+                console.log("connected to " + wsuri);
+                $('#send-msg').show();
+                $('#connect-srv').hide();
+            };
 
-        //receive msg from server
-        sock.onmessage = function (evt) {
-            console.log("message received: " + evt.data);
-            var msg_cnt = document.getElementById('msg_cnt');
-            msg_cnt.innerHTML+= '<div>'+evt.data+'</div>';
+            sock.onclose = function (evt) {
+                console.log("connection closed (" + evt.code + ")");
+                $('#send-msg').hide();
+                $('#connect-srv').show();
+            };
+
+            sock.onerror = function (evt) {
+                console.log('Error occured: ' + evt.data);
+                $('#send-msg').hide();
+                $('#connect-srv').show();
+            };
+
+            //receive msg from server
+            sock.onmessage = function (evt) {
+                console.log("message received: " + evt.data);
+                var msg_cnt = document.getElementById('msg-cnt');
+                msg_cnt.innerHTML += '<div class="col-lg-12">' + evt.data + '</div>';
+                scrollchange_msg_cnt();
+            }
         }
-    };
 
-    //send a msg to server
-    function send() {
-        var msg = document.getElementById('message').value;
-        sock.send(msg);
+        //send a msg to server
+        function send() {
+            var msg = $('#message').val();
+            if(msg!=''){
+                sock.send(msg);
+            }
+            $('#message').val('');
+        }
+
+    </script>
+    <style type="text/css">
+        #msg-cnt{
+            overflow-y: scroll;
+            margin-bottom: 50px;
+            border: 1px solid #cccccc;
+            border-top-left-radius: 5px 5px;
+            border-top-right-radius: 5px 5px;
+            border-bottom-right-radius:5px 5px;
+            border-bottom-left-radius:5px 5px;
+        }
+        #send-nav .container .col-lg-12{
+            padding-left: 0;!important;
+            padding-right: 0;!important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="msg-containner" class="container">
+    <h1>WebSocket 聊天室 Test^_^</h1>
+    <div id="msg-cnt" class="row"></div>
+</div>
+<nav id="send-nav" class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container">
+        <div id="" class="row">
+            <div class="col-lg-12">
+                <div class="input-group">
+                    <input id="message" type="text" class="form-control" placeholder="请输入消息并发送...">
+                <span class="input-group-btn">
+                    <button id="connect-srv" class="btn btn-default" onclick="connect();" type="button" style="display: none;">连接服务器</button>
+                    <button id="send-msg" class="btn btn-success" onclick="send();" type="button">发送 消息</button>
+                </span>
+                </div>
+                <!-- /input-group -->
+            </div>
+            <!-- /.col-lg-6 -->
+        </div>
+    </div>
+</nav>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#message').keypress(function(evt){
+           if(evt.keyCode == 13){
+               send();
+           }
+        });
+
+        $(window).resize(function(){
+            resize_msg_cnt();
+        });
+        resize_msg_cnt();
+    });
+    //调整消息窗口尺寸
+    function resize_msg_cnt(){
+        var body_height = document.body.clientHeight;
+        var send_nav_height = $('#send-nav').outerHeight();
+        $('#msg-containner').height(body_height-send_nav_height);
+        var title_nav_height = $('h1').outerHeight(true);
+        var msg_containner_height = $('#msg-containner').innerHeight();
+        $('#msg-cnt').height(msg_containner_height-title_nav_height-2);//别忘了去掉边框的两个像素
+        scrollchange_msg_cnt();
     }
-
+    //调整消息框滚动条
+    function scrollchange_msg_cnt(){
+        $("#msg-cnt").scrollTop($("#msg-cnt")[0].scrollHeight);
+    }
 </script>
-<h1>WebSocket Echo Test^_^</h1>
-
-<form>
-    <p>
-        Message: <input id="message" type="text" value="Hello, world!">
-    </p>
-</form>
-<button onclick="send();">Send Message</button>
-<div id="msg_cnt"></div>
 </body>
 </html>
