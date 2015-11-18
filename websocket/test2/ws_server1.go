@@ -19,16 +19,19 @@ var client_list *list.List
 
 func SendMsg(msg string) (error){
 	if client_list.Len() > 0{
-		for element := client_list.Front(); element != nil; element = element.Next() {
+		for element := client_list.Front(); element != nil;  {
 			if client, ok := element.Value.(*Client); ok{
 				if err := websocket.Message.Send(client.ws, msg); err != nil {
 					fmt.Println("Can't send")
-					client_list.Remove(element)
+					element = element.Next();
+					client_list.Remove(element.Prev())
+					continue
 				}
 			}else{
 				fmt.Println(element.Value)
 				fmt.Println(reflect.TypeOf(element.Value))
 			}
+			element = element.Next()
 		}
 	}
 	return nil
