@@ -1,6 +1,5 @@
 var sock = null;
 var wsuri = "ws://127.0.0.1:1234";
-var from_user = 'test';
 
 window.onload = function () {
 
@@ -36,34 +35,16 @@ function connect() {
     sock.onmessage = function (evt) {
         console.log("message received: " + evt.data);
         var msg_cnt = document.getElementById('msg-cnt');
-        var msg_data = JSON.parse(evt.data);
-        msg_cnt.innerHTML += '<div class="col-lg-12">' + msg_data.from_user + ":" + msg_data.msg +'</div>';
+        msg_cnt.innerHTML += '<div class="col-lg-12">' + evt.data + '</div>';
         scrollchange_msg_cnt();
     }
-}
-
-function send_msg(msg,type,to_user){
-    if(type == undefined){
-        type = "normal"
-    }
-    if(to_user == undefined){
-        to_user = ""
-    }
-    var msg_data = {
-        status:1,
-        _t:type,
-        msg:msg,
-        to_user:to_user,
-        from_user:from_user
-    };
-    sock.send(JSON.stringify(msg_data));
 }
 
 //send a msg to server
 function send() {
     var msg = $('#message').val();
     if (msg != '') {
-        send_msg(msg)
+        sock.send(msg);
     }
     $('#message').val('');
 }

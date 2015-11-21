@@ -1,0 +1,50 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>聊天室 Test</title>
+    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="./assets/js/ws.js"></script>
+    <script src="./assets/js/ws_ui.js"></script>
+    <link href="./assets/css/ws.css" rel="stylesheet"/>
+</head>
+<body>
+
+<div id="msg-containner" class="container">
+    <h1>WebSocket 聊天室 Test^_^</h1>
+    <div id="msg-cnt" class="row"></div>
+</div>
+<nav id="send-nav" class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container">
+        <div id="" class="row">
+            <div class="col-lg-12">
+                <div class="input-group">
+                    <input id="message" type="text" class="form-control" placeholder="请输入消息并发送...">
+                <span class="input-group-btn">
+                    <button id="connect-srv" class="btn btn-default" onclick="connect();" type="button" style="display: none;">连接服务器</button>
+                    <button id="send-msg" class="btn btn-success" onclick="send();" type="button">发送 消息</button>
+                </span>
+                </div>
+                <!-- /input-group -->
+            </div>
+            <!-- /.col-lg-6 -->
+        </div>
+    </div>
+</nav>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#message').keypress(function(evt){
+            if(evt.keyCode == 13){
+                send();
+            }
+        });
+        $(window).resize(function(){
+            resize_msg_cnt();
+        });
+        resize_msg_cnt();
+    });
+</script>
+</body>
+</html>
