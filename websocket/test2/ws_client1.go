@@ -23,16 +23,17 @@ func (self *WS_handle) ServeHTTP(
 w http.ResponseWriter,
 r *http.Request) {
 	tpl_file := "./html/ws_client1.html"
-	ws_page,err := ioutil.ReadFile(tpl_file)
-	if err !=nil{
-		fmt.Fprint(w,"Error:There is no template file",tpl_file)
+	ws_page, err := ioutil.ReadFile(tpl_file)
+	if err != nil {
+		fmt.Fprint(w, "Error:There is no template file", tpl_file)
 		return
 	}
 	fmt.Fprint(w, string(ws_page))
 }
 
 func main() {
-		http.Handle("/", &WS_handle{})
-		log.Fatal(http.ListenAndServe("localhost:4000", nil))
-	
+	http.Handle("/", &WS_handle{})
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./html/assets"))))
+	log.Fatal(http.ListenAndServe("localhost:4000", nil))
+
 }

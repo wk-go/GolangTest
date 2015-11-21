@@ -1,0 +1,16 @@
+#msg-cnt {
+    overflow-y: scroll;
+    margin-bottom: 50px;
+    border: 1px solid #cccccc;
+    border-top-left-radius: 5px 5px;
+    border-top-right-radius: 5px 5px;
+    border-bottom-right-radius: 5px 5px;
+    border-bottom-left-radius: 5px 5px;
+}
+
+#send-nav .container .col-lg-12 {
+    padding-left: 0;
+!important;
+    padding-right: 0;
+!important;
+}
