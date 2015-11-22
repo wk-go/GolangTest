@@ -3,7 +3,6 @@ package main
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"fmt"
 	"log"
 	"net/http"
 	"container/list"
@@ -43,7 +42,7 @@ func (cl *Client_list)Append(data interface{}) (*list.Element){
 func (cl *Client_list)msg_handle(msg string, ws *websocket.Conn){
 	var msg_tmp interface{}
 	if err := json.Unmarshal([]byte(msg), &msg_tmp); err != nil{
-		fmt.Println(err)
+		log.Println(err)
 	}
 	if msg_data, ok := msg_tmp.(map[string]interface{}); ok{
 		switch msg_data["_t"] {
@@ -65,14 +64,14 @@ func (cl *Client_list)SendMsg(msg string) (error){
 		for element := cl.list.Front(); element != nil;  {
 			if client, ok := element.Value.(*Client); ok{
 				if err := websocket.Message.Send(client.ws, msg); err != nil {
-					fmt.Println("Can't send")
+					log.Println("Can't send")
 					element = element.Next();
 					cl.list.Remove(element.Prev())
 					continue
 				}
 			}else{
-				fmt.Println(element.Value)
-				fmt.Println(reflect.TypeOf(element.Value))
+				log.Println(element.Value)
+				log.Println(reflect.TypeOf(element.Value))
 			}
 			element = element.Next()
 		}
@@ -109,15 +108,15 @@ func (cl *Client_list) start_mass(){
 func Accept(ws *websocket.Conn) {
 	var err error
 	c_list.Append(&Client{ws:ws,msg:list.New()})
-	fmt.Println("client connected")
+	log.Println("client connected")
 	for {
 		var reply string
 
 		if err = websocket.Message.Receive(ws, &reply); err != nil {
-			fmt.Println("Can't receive")
+			log.Println("Can't receive")
 			break
 		}
-		fmt.Println("Received from client: " + reply)
+		log.Println("Received from client: " + reply)
 		c_list.msg_handle(reply, ws)
 	}
 }
@@ -132,7 +131,7 @@ func main() {
 	go c_list.start_mass()
 
 	http.Handle("/", websocket.Handler(Accept))
-	fmt.Println("start serving")
+	log.Println("start serving")
 	if err := http.ListenAndServe(":1234", nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
