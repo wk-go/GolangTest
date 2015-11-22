@@ -109,6 +109,7 @@ func (cl *Client_list) start_mass(){
 func Accept(ws *websocket.Conn) {
 	var err error
 	c_list.Append(&Client{ws:ws,msg:list.New()})
+	fmt.Println("client connected")
 	for {
 		var reply string
 
