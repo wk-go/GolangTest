@@ -1,6 +1,6 @@
 var sock = null;
 var wsuri = "ws://127.0.0.1:1234";
-var from_user = 'test';
+var nickname = 'test';
 
 window.onload = function () {
 
@@ -54,7 +54,7 @@ function send_msg(msg,type,to_user){
         _t:type,
         msg:msg,
         to_user:to_user,
-        from_user:from_user
+        from_user:nickname
     };
     sock.send(JSON.stringify(msg_data));
 }

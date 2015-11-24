@@ -26,20 +26,45 @@ type Client struct{
 	msg 			*list.List
 }
 
-type Client_list struct{
+//发送消息
+func (c *Client)SendMsg(msg string) (err error){
+	if err := websocket.Message.Send(c.ws, msg); err != nil {
+		return err
+	}
+	return nil
+}
+//追加个人消息
+func (c *Client)AppendMsg(msg string) (*list.Element){
+	return c.msg.PushBack(msg)
+}
+//发送消息
+func (c *Client)SendMsgSingle(msg string) (err error){
+	for element := c.msg.Front(); element != nil; {
+		if msg, ok := element.Value.(string); ok {
+			if err := c.SendMsg(msg); err != nil {
+				return err
+			}
+		}
+		c.msg.Remove(element)
+		element=c.msg.Front()
+	}
+	return nil
+}
+
+
+type ClientList struct{
 	list 			*list.List		//客户端列表
 	msg_list		*list.List		//群发消息列表
 	msg_ch			chan int		//群发消息开关
+	msg_single		chan int		//单发消息
 }
-
-var c_list *Client_list
 //添加客户端
-func (cl *Client_list)Append(data interface{}) (*list.Element){
+func (cl *ClientList)Append(data interface{}) (*list.Element){
 	return cl.list.PushBack(data)
 }
 
 //处理客户端发送的消息
-func (cl *Client_list)msg_handle(msg string, ws *websocket.Conn){
+func (cl *ClientList)msg_handle(msg string, client *Client){
 	var msg_tmp interface{}
 	if err := json.Unmarshal([]byte(msg), &msg_tmp); err != nil{
 		log.Println(err)
@@ -52,18 +77,43 @@ func (cl *Client_list)msg_handle(msg string, ws *websocket.Conn){
 					cl.msg_ch <- 1
 				}
 		case "set":
+			if msg_data["to_user"] == "" && msg_data["nickname"] != ""{//设置昵称
+				var flag = true
+				for element := cl.list.Front(); element != nil; {
+					if client, ok := element.Value.(*Client); ok && client.nickname == msg_data["nickname"] {
+						flag = false
+					}
+				}
 
+				nickname_msg := map[string]string{
+					"status":"1",
+					"_t":"set",
+					"msg":"昵称修改成功",
+					"to_user":msg_data["nickname"].(string),
+					"from_user":msg_data["nickname"].(string),
+				}
+				if !flag {
+					nickname_msg["status"] = "0"
+				}
+
+				if msg, err := json.Marshal(msg_data); err == nil {
+					client.SendMsg(string(msg))
+					if flag{
+						cl.msg_single <- 1
+					}
+				}
+			}
 		}
 	}
 }
 
 
 //群发消息
-func (cl *Client_list)SendMsg(msg string) (error){
+func (cl *ClientList)SendMsg(msg string) (error){
 	if cl.list.Len() > 0{
 		for element := cl.list.Front(); element != nil;  {
 			if client, ok := element.Value.(*Client); ok{
-				if err := websocket.Message.Send(client.ws, msg); err != nil {
+				if err := client.SendMsg(msg); err != nil {
 					log.Println("Can't send")
 					element = element.Next();
 					cl.list.Remove(element.Prev())
@@ -79,7 +129,7 @@ func (cl *Client_list)SendMsg(msg string) (error){
 	return nil
 }
 //处理群发消息
-func (cl *Client_list)SendNormal() (error){
+func (cl *ClientList)SendNormal() (error){
 	if cl.msg_list.Len() > 0 {
 		e := cl.msg_list.Front();
 		if msg_data, ok := e.Value.(map[string]interface{}); ok{
@@ -93,7 +143,7 @@ func (cl *Client_list)SendNormal() (error){
 }
 
 //群发go程
-func (cl *Client_list) start_mass(){
+func (cl *ClientList) start_mass(){
 	for{
 		select {
 		case <-cl.msg_ch:
@@ -104,10 +154,13 @@ func (cl *Client_list) start_mass(){
 	}
 }
 
+var cList *ClientList
+
 //接收客户端连接请求
 func Accept(ws *websocket.Conn) {
 	var err error
-	c_list.Append(&Client{ws:ws,msg:list.New()})
+	currClient := &Client{ws:ws,msg:list.New()}
+	cList.Append(currClient)
 	log.Println("client connected")
 	for {
 		var reply string
@@ -117,18 +170,19 @@ func Accept(ws *websocket.Conn) {
 			break
 		}
 		log.Println("Received from client: " + reply)
-		c_list.msg_handle(reply, ws)
+		cList.msg_handle(reply, currClient)
 	}
 }
 
 func main() {
-	c_list = &Client_list{
+	cList = &ClientList{
 		list:		list.New(),
 		msg_list:	list.New(),
 		msg_ch:		make(chan int,100),
+		msg_single:		make(chan int,2000),
 	}
 
-	go c_list.start_mass()
+	go cList.start_mass()
 
 	http.Handle("/", websocket.Handler(Accept))
 	log.Println("start serving")
