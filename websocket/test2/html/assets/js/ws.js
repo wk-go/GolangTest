@@ -1,11 +1,11 @@
 var sock = null;
 var wsuri = "ws://127.0.0.1:1234";
-var nickname = 'test';
+var nickname = '';
 
 window.onload = function () {
-
     console.log("onload");
-    connect()
+    set_nickname();
+    connect();
 };
 
 function connect() {
@@ -38,11 +38,38 @@ function connect() {
         var msg_cnt = document.getElementById('msg-cnt');
         var msg_data = JSON.parse(evt.data);
         msg_cnt.innerHTML += '<div class="col-lg-12">' + msg_data.from_user + ":" + msg_data.msg +'</div>';
+        if(msg_data['_t']=='set'){
+            if(msg_data['nickname'] != undefined && msg_data['nickname'] != ''){
+                if(msg_data['status'] == 1) {
+                    nickname = msg_data['nickname'];
+                }else{
+                    set_nickname('昵称用冲突,请重新设置昵称');
+                }
+            }
+        }
         scrollchange_msg_cnt();
     }
 }
+function set_nickname(msg){
+    if(msg == undefined){
+        msg = '请设置您的昵称';
+    }
+    layer.prompt({
+        title: msg,
+        formType: 0
+    }, function(nick,index){
+        if(sock == null){
+            connect();
+        }
+        if(nick != ''){
+            send_msg('设置昵称','set','',{nickname:nick});
+            nickname = nick
+        }
+        layer.close(index);
+    });
+}
 
-function send_msg(msg,type,to_user){
+function send_msg(msg,type,to_user,other_data){
     if(type == undefined){
         type = "normal"
     }
@@ -56,6 +83,9 @@ function send_msg(msg,type,to_user){
         to_user:to_user,
         from_user:nickname
     };
+    if( other_data != undefined){
+        $.extend(msg_data, other_data);
+    }
     sock.send(JSON.stringify(msg_data));
 }
 
