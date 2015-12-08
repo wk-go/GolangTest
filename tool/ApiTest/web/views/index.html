@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{.appInfo.app_name}}-{{.appInfo.version}}</title>
-</head>
-<body>
+{{.header}}
+{{define "tpl"}}{{"hello Tpl"}}{{end}}
 Hello Apitest
-</body>
-</html>
+{{template "tpl"}}
+{{.footer}}
