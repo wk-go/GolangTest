@@ -6,6 +6,8 @@ import(
 	"net/http"
 	"log"
 	"io/ioutil"
+	"html/template"
+	"io"
 )
 //app配置
 var AppInfo = map[string]string{
@@ -39,8 +41,20 @@ func ReadView(viewName string)(string)  {
 	}
 	return string(content)
 }
+//渲染视图
+func RenderView(w io.Writer,viewName string, data map[string]interface{}){
+	//绑定默认数据
+	if _,ok :=data["appInfo"];!ok{
+		data["appInfo"]=AppInfo
+	}
+
+	viewCnt := ReadView(viewName)
+	tmpl,err := template.New(viewName).Parse(viewCnt)
+	if err != nil { panic(err) }
+	err = tmpl.Execute(w, data)
+	if err != nil { panic(err) }
+}
 //首页
 func index(w http.ResponseWriter, r *http.Request){
-	content :=ReadView("index")
-	fmt.Fprint(w, content)
+	RenderView(w,"index",map[string]interface{}{})
 }
