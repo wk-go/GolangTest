@@ -26,6 +26,7 @@ var Config = map[string]interface{}{
 //路由表
 var UrlRoute = map[string]http.HandlerFunc{
 	"/":index,
+	"/add":add,
 }
 func main() {
 	//设置静态文件
@@ -85,4 +86,10 @@ func RenderView(w io.Writer, viewName string, data map[string]interface{}) {
 //首页
 func index(w http.ResponseWriter, r *http.Request) {
 	RenderView(w, "index", map[string]interface{}{})
+}
+
+//首页
+func add(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.Form)
+	RenderView(w, "add", map[string]interface{}{})
 }
