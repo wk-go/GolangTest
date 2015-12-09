@@ -83,13 +83,30 @@ func RenderView(w io.Writer, viewName string, data map[string]interface{}) {
 		if err != nil { panic(err) }
 	}
 }
+
+//处理配置信息
+type Config struct {
+
+}
+//处理从表单收到的配置数据
+func (c *Config)HandleConfig(data map[string]interface{})( map[string]interface{}){
+	return map[string]interface{}
+}
+//保存配置信息到文件
+func (c *Config)SaveConfig(data map[string]interface{}){
+
+}
 //首页
 func index(w http.ResponseWriter, r *http.Request) {
 	RenderView(w, "index", map[string]interface{}{})
 }
 
-//首页
+//添加新配置
 func add(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Form)
+	r.ParseForm()
+	conf := &Config{}
+	if len(r.Form) > 0{
+		conf.SaveConfig(r.Form)
+	}
 	RenderView(w, "add", map[string]interface{}{})
 }
