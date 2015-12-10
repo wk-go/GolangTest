@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io"
 	"encoding/json"
+	_"reflect"
 )
 //app配置
 var AppInfo = map[string]string{
@@ -30,7 +31,7 @@ var Config = map[string]interface{}{
 //路由表
 var UrlRoute = map[string]http.HandlerFunc{
 	"/":index,
-	"/add":add,
+	"/api_conf":api_conf,
 }
 func main() {
 	//设置静态文件
@@ -99,37 +100,53 @@ func (c *ApiConfig)HandleConfig(data map[string]interface{}) (map[string]interfa
 //保存配置信息到文件
 func (c *ApiConfig)SaveConfig(data map[string][]string) {
 	var (
-		content []byte
-		cnt_map_itf map[string]interface{}
 		cnt_map map[string][]string
 		err error
-		filename string
+		api_identify string
 	)
 	if val, ok := data["api_identify"]; len(val) > 0 && ok {
-		api_conf, _ := Config["api"].(map[string]string)
-		filename = fmt.Sprintf("%v/%v.json", api_conf["path"], val[0])
-
-		content, err = ioutil.ReadFile(filename)
-		json.Unmarshal(content, cnt_map_itf)
-		cnt_map = CvtMapStr(cnt_map_itf)
-		if err == nil {
-			for key, val := range data{
-				cnt_map[key]=val
-			}
-		}else {
-			cnt_map=data
-			log.Println(err)
-		}
-
-		content, err = json.Marshal(CvtMapIntf(cnt_map))
+		api_identify = val[0]
 	}
-	if filename == "" {
+	if api_identify == "" {
+		log.Println("post: api_identify is empty")
 		return
 	}
 
-	if len(content) > 0 {
-		ioutil.WriteFile(filename, content, 755)
+	cnt_map = c.ReadApiConf(api_identify)
+	if err == nil {
+		for key, val := range data{
+			cnt_map[key]=val
+		}
+	}else {
+		cnt_map=data
+		log.Println(err)
 	}
+	if len(cnt_map) <= 0 {
+		log.Println("post: nothing to save")
+		return
+	}
+	c.WriteApiConf(api_identify,cnt_map)
+}
+//读取配置文件内容
+func (c *ApiConfig)ReadApiConf(api_identify string) (map[string][]string) {
+	var cnt_map_itf map[string]interface{}
+	api_conf, _ := Config["api"].(map[string]string)
+	filename := fmt.Sprintf("%v/%v.json", api_conf["path"], api_identify)
+	content, _ := ioutil.ReadFile(filename)
+	//log.Printf("The string content of file %v:%v\n",api_identify,string(content))
+	json.Unmarshal(content, &cnt_map_itf)
+	//log.Printf("The content of file %v:%v\n",api_identify,cnt_map_itf)
+	cnt_map := CvtMapStr(cnt_map_itf)
+	log.Printf("Reading the api config: %v\n",api_identify)
+	return cnt_map
+}
+//将配置信息写入配置文件
+func (c *ApiConfig)WriteApiConf(api_identify string,cnt_map map[string][]string) (error) {
+	api_conf, _ := Config["api"].(map[string]string)
+	filename := fmt.Sprintf("%v/%v.json", api_conf["path"], api_identify)
+	content,_ :=json.Marshal(CvtMapIntf(cnt_map))
+	log.Printf("Update the api config: %v\n",api_identify)
+	return ioutil.WriteFile(filename, content, 755)
 }
 //转换:将map[string][]string转换为map[string]interface{}
 func CvtMapIntf(formData map[string][]string) (map[string]interface{}) {
@@ -146,7 +163,9 @@ func CvtMapIntf(formData map[string][]string) (map[string]interface{}) {
 //转换:将map[string]interface{}转换为map[string][]string
 func CvtMapStr(formData map[string]interface{}) (map[string][]string) {
 	var data = make(map[string][]string)
+	//log.Println("Data map:",formData)
 	for key, val := range formData {
+		//log.Printf("Convert map to string:[%v]=%v",key,val)
 		if val, ok:= val.(string); ok {
 			data[key] = []string{val}
 			continue
@@ -155,6 +174,7 @@ func CvtMapStr(formData map[string]interface{}) (map[string][]string) {
 			data[key] = val
 		}
 	}
+	//log.Println("Convert map to string map:",data)
 	return data
 }
 //首页
@@ -163,11 +183,28 @@ func index(w http.ResponseWriter, req *http.Request) {
 }
 
 //添加新配置
-func add(w http.ResponseWriter, req *http.Request) {
+func api_conf(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
-	conf := &ApiConfig{}
-	if len(req.Form) > 0 {
-		conf.SaveConfig(req.Form)
+	log.Printf("api_conf handle start\n")
+	if act, ok := req.Form["act"];ok{
+		conf := &ApiConfig{}
+		if len(req.PostForm) > 0 {
+			conf.SaveConfig(req.PostForm)
+			http.Redirect(w,req,fmt.Sprintf("/api_conf?act=edit&api=%v",req.FormValue("api_identify")),302);
+		}
+		if act[0] == "edit"{
+			if api_identify, ok := req.Form["api"]; ok{
+				if len(req.PostForm) <= 0{
+					req.PostForm = conf.ReadApiConf(api_identify[0])
+				}
+			}
+			//log.Printf("api_conf update\n")
+		}else{
+			//log.Printf("api_conf add\n")
+		}
 	}
+	log.Println(req.PostForm)
+	log.Printf("api_conf render\n")
 	RenderView(w, "add", map[string]interface{}{"req":req})
+	log.Printf("api_conf handle end\n")
 }
