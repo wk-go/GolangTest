@@ -5,28 +5,28 @@
             <label for="api_identify" class="col-sm-2 control-label">接口标识</label>
 
             <div class="col-sm-10">
-                <input id="api_identify" name="api_identify" type="text" class="form-control" placeholder="接口标识">
+                <input id="api_identify" name="api_identify" type="text" class="form-control" placeholder="接口标识" value="{{index .req.Form.api_identify 0}}">
             </div>
         </div>
         <div class="form-group">
             <label for="api_name" class="col-sm-2 control-label">接口名称</label>
 
             <div class="col-sm-10">
-                <input id="api_name" name="api_name" type="text" class="form-control" placeholder="接口名称">
+                <input id="api_name" name="api_name" type="text" class="form-control" placeholder="接口名称" value="{{index .req.Form.api_name 0}}">
             </div>
         </div>
         <div class="form-group">
             <label for="api_host" class="col-sm-2 control-label">接口主机</label>
 
             <div class="col-sm-10">
-                <input id="api_host" name="api_host" type="text" class="form-control" placeholder="接口名称">
+                <input id="api_host" name="api_host" type="text" class="form-control" placeholder="接口名称" value="{{index .req.Form.api_host 0}}">
             </div>
         </div>
         <div class="form-group">
             <label for="api_description" class="col-sm-2 control-label">接口描述</label>
 
             <div class="col-sm-10">
-                <textarea id="api_description" name="api_description" type="text" class="form-control" placeholder="接口描述"></textarea>
+                <textarea id="api_description" name="api_description" type="text" class="form-control" placeholder="接口描述">{{index .req.Form.api_description 0}}</textarea>
             </div>
         </div>
         <div class="form-group">

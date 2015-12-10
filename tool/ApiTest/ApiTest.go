@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"html/template"
 	"io"
+	"encoding/json"
 )
 //app配置
 var AppInfo = map[string]string{
@@ -21,6 +22,9 @@ var Config = map[string]interface{}{
 	"tpml":map[string]string{
 		"header":"./web/views/header.html",
 		"footer":"./web/views/footer.html",
+	},
+	"api":map[string]string{
+		"path":"./api_config",
 	},
 }
 //路由表
@@ -85,28 +89,85 @@ func RenderView(w io.Writer, viewName string, data map[string]interface{}) {
 }
 
 //处理配置信息
-type Config struct {
+type ApiConfig struct {
 
 }
 //处理从表单收到的配置数据
-func (c *Config)HandleConfig(data map[string]interface{})( map[string]interface{}){
-	return map[string]interface{}
+func (c *ApiConfig)HandleConfig(data map[string]interface{}) (map[string]interface{}) {
+	return nil
 }
 //保存配置信息到文件
-func (c *Config)SaveConfig(data map[string]interface{}){
+func (c *ApiConfig)SaveConfig(data map[string][]string) {
+	var (
+		content []byte
+		cnt_map_itf map[string]interface{}
+		cnt_map map[string][]string
+		err error
+		filename string
+	)
+	if val, ok := data["api_identify"]; len(val) > 0 && ok {
+		api_conf, _ := Config["api"].(map[string]string)
+		filename = fmt.Sprintf("%v/%v.json", api_conf["path"], val[0])
 
+		content, err = ioutil.ReadFile(filename)
+		json.Unmarshal(content, cnt_map_itf)
+		cnt_map = CvtMapStr(cnt_map_itf)
+		if err == nil {
+			for key, val := range data{
+				cnt_map[key]=val
+			}
+		}else {
+			cnt_map=data
+			log.Println(err)
+		}
+
+		content, err = json.Marshal(CvtMapIntf(cnt_map))
+	}
+	if filename == "" {
+		return
+	}
+
+	if len(content) > 0 {
+		ioutil.WriteFile(filename, content, 755)
+	}
+}
+//转换:将map[string][]string转换为map[string]interface{}
+func CvtMapIntf(formData map[string][]string) (map[string]interface{}) {
+	var data = make(map[string]interface{})
+	for key, val := range formData {
+		if len(val) == 1 {
+			data[key] = val[0]
+			continue
+		}
+		data[key] = val
+	}
+	return data
+}
+//转换:将map[string]interface{}转换为map[string][]string
+func CvtMapStr(formData map[string]interface{}) (map[string][]string) {
+	var data = make(map[string][]string)
+	for key, val := range formData {
+		if val, ok:= val.(string); ok {
+			data[key] = []string{val}
+			continue
+		}
+		if val, ok:= val.([]string); ok {
+			data[key] = val
+		}
+	}
+	return data
 }
 //首页
-func index(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, req *http.Request) {
 	RenderView(w, "index", map[string]interface{}{})
 }
 
 //添加新配置
-func add(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	conf := &Config{}
-	if len(r.Form) > 0{
-		conf.SaveConfig(r.Form)
+func add(w http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	conf := &ApiConfig{}
+	if len(req.Form) > 0 {
+		conf.SaveConfig(req.Form)
 	}
-	RenderView(w, "add", map[string]interface{}{})
+	RenderView(w, "add", map[string]interface{}{"req":req})
 }
