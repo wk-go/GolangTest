@@ -32,6 +32,8 @@ var Config = map[string]interface{}{
 var UrlRoute = map[string]http.HandlerFunc{
 	"/":index,
 	"/api_conf":api_conf,
+	"/api_group":api_group,
+	"/api_item":api_item,
 }
 func main() {
 	//设置静态文件
@@ -102,50 +104,80 @@ func (c *ApiConfig)SaveConfig(data map[string][]string) {
 	var (
 		cnt_map map[string]interface{}
 		err error
-		api_identify string
+		api_id string
 	)
-	if val, ok := data["api_identify"]; len(val) > 0 && ok {
-		api_identify = val[0]
+	if val, ok := data["api_id"]; len(val) > 0 && ok {
+		api_id = val[0]
 	}
-	if api_identify == "" {
-		log.Println("post: api_identify is empty")
+	if api_id == "" {
+		log.Println("post: api_id is empty")
 		return
 	}
 
-	cnt_map, err = c.ReadApiConf(api_identify)
+	cnt_map, err = c.ReadApiConf(api_id)
 	if err == nil {
-		for key, val := range CvtMapIntf(data){
-			cnt_map[key]=val
+		for key, val := range CvtMapIntf(data) {
+			cnt_map[key] = val
 		}
 	}else {
-		cnt_map=CvtMapIntf(data)
+		cnt_map = CvtMapIntf(data)
 		log.Println(err)
 	}
 	if len(cnt_map) <= 0 {
 		log.Println("post: nothing to save")
 		return
 	}
-	c.WriteApiConf(api_identify,cnt_map)
+	c.WriteApiConf(api_id, cnt_map)
+}
+//保存分组信息到配置文件
+func (c *ApiConfig)SaveGroup(data map[string][]string) {
+	var (
+		cnt_map map[string]interface{}
+		err error
+		api_id string
+	)
+	if val, ok := data["api_id"]; len(val) > 0 && ok {
+		api_id = val[0]
+	}
+	if api_id == "" {
+		log.Println("post: api_id is empty")
+		return
+	}
+
+	cnt_map, err = c.ReadApiConf(api_id)
+	if err == nil {
+		for key, val := range CvtMapIntf(data) {
+			cnt_map[key] = val
+		}
+	}else {
+		cnt_map = CvtMapIntf(data)
+		log.Println(err)
+	}
+	if len(cnt_map) <= 0 {
+		log.Println("post: nothing to save")
+		return
+	}
+	c.WriteApiConf(api_id, cnt_map)
 }
 //读取配置文件内容
-func (c *ApiConfig)ReadApiConf(api_identify string) (map[string]interface{},error) {
+func (c *ApiConfig)ReadApiConf(api_id string) (map[string]interface{}, error) {
 	var cnt_map_itf map[string]interface{}
 	api_conf, _ := Config["api"].(map[string]string)
-	filename := fmt.Sprintf("%v/%v.json", api_conf["path"], api_identify)
+	filename := fmt.Sprintf("%v/%v.json", api_conf["path"], api_id)
 	content, err := ioutil.ReadFile(filename)
-	//log.Printf("The string content of file %v:%v\n",api_identify,string(content))
+	//log.Printf("The string content of file %v:%v\n",api_id,string(content))
 	json.Unmarshal(content, &cnt_map_itf)
-	//log.Printf("The content of file %v:%v\n",api_identify,cnt_map_itf)
+	//log.Printf("The content of file %v:%v\n",api_id,cnt_map_itf)
 	//cnt_map := CvtMapStr(cnt_map_itf)
-	log.Printf("Reading the api config: %v\n",api_identify)
-	return cnt_map_itf,err
+	log.Printf("Reading the api config: %v\n", api_id)
+	return cnt_map_itf, err
 }
 //将配置信息写入配置文件
-func (c *ApiConfig)WriteApiConf(api_identify string,cnt_map map[string]interface{}) (error) {
+func (c *ApiConfig)WriteApiConf(api_id string, cnt_map map[string]interface{}) (error) {
 	api_conf, _ := Config["api"].(map[string]string)
-	filename := fmt.Sprintf("%v/%v.json", api_conf["path"], api_identify)
-	content,_ :=json.Marshal(cnt_map)
-	log.Printf("Update the api config: %v\n",api_identify)
+	filename := fmt.Sprintf("%v/%v.json", api_conf["path"], api_id)
+	content, _ := json.Marshal(cnt_map)
+	log.Printf("Update the api config: %v\n", api_id)
 	return ioutil.WriteFile(filename, content, 755)
 }
 //转换:将map[string][]string转换为map[string]interface{}
@@ -166,11 +198,11 @@ func CvtMapStr(formData map[string]interface{}) (map[string][]string) {
 	//log.Println("Data map:",formData)
 	for key, val := range formData {
 		//log.Printf("Convert map to string:[%v]=%v",key,val)
-		if val, ok:= val.(string); ok {
+		if val, ok := val.(string); ok {
 			data[key] = []string{val}
 			continue
 		}
-		if val, ok:= val.([]string); ok {
+		if val, ok := val.([]string); ok {
 			data[key] = val
 		}
 	}
@@ -187,26 +219,22 @@ func api_conf(w http.ResponseWriter, req *http.Request) {
 	edit := false
 	req.ParseForm()
 	log.Printf("api_conf handle start\n")
-	if act, ok := req.Form["act"];ok{
+	if act, ok := req.Form["act"]; ok {
 		conf := &ApiConfig{}
 
 		if len(req.PostForm) > 0 {
-			if _,err :=conf.ReadApiConf(req.FormValue("api_identify"));act[0] == "add" && err==nil {
-				http.Redirect(w,req,fmt.Sprintf("/api_conf?act=edit&api=%v",req.FormValue("api_identify")),302);
+			if _, err := conf.ReadApiConf(req.FormValue("api_id")); act[0] == "add" && err == nil {
+				http.Redirect(w, req, fmt.Sprintf("/api_conf?act=edit&api=%v", req.FormValue("api_id")), 302);
 			}
 			conf.SaveConfig(req.PostForm)
-			http.Redirect(w,req,fmt.Sprintf("/api_conf?act=edit&api=%v",req.FormValue("api_identify")),302);
+			http.Redirect(w, req, fmt.Sprintf("/api_conf?act=edit&api=%v", req.FormValue("api_id")), 302);
 		}
-		if act[0] == "edit"{
-			if api_identify, ok := req.Form["api"]; ok{
-				if len(req.PostForm) <= 0{
-					conf_data,err :=conf.ReadApiConf(api_identify[0])
-					if err ==nil {
-						for _, key := range []string{"api_host", "api_description", "api_identify", "api_name"} {
-							str, _ := conf_data[key].(string)
-							req.PostForm[key] = []string{str}
-						}
-					}
+		if act[0] == "edit" && req.FormValue("api") != "" && len(req.PostForm) <= 0 {
+			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+			if err == nil {
+				for _, key := range []string{"api_host", "api_description", "api_id", "api_name"} {
+					str, _ := conf_data[key].(string)
+					req.PostForm[key] = []string{str}
 				}
 			}
 			edit = true
@@ -216,6 +244,63 @@ func api_conf(w http.ResponseWriter, req *http.Request) {
 	}
 	log.Println(req.PostForm)
 	log.Printf("api_conf render\n")
-	RenderView(w, "add", map[string]interface{}{"req":req,"edit":edit})
+	RenderView(w, "add", map[string]interface{}{"req":req, "edit":edit})
 	log.Printf("api_conf handle end\n")
+}
+
+//添加配置项分组
+func api_group(w http.ResponseWriter, req *http.Request) {
+	edit := false
+	req.ParseForm()
+	log.Printf("api_group handle start\n")
+	if act, ok := req.Form["act"]; ok {
+		conf := &ApiConfig{}
+
+		if len(req.PostForm) > 0 {
+			conf.SaveGroup(req.PostForm)
+			http.Redirect(w, req, fmt.Sprintf("/api_group?act=edit&api=%v&group=", req.FormValue("api_id"),req.FormValue("group_id")), 302);
+		}
+
+		if _, err := conf.ReadApiConf(req.FormValue("api")); act[0] == "add" && err == nil {
+			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+			if err == nil {
+				for _, key := range []string{"api_id","group_name","group_id"} {
+					if str, ok := conf_data[key].(string); ok {
+						req.PostForm[key] = []string{str}
+					}else{
+						req.PostForm[key] = []string{""}
+					}
+				}
+			}
+		}else{
+			log.Println(err)
+		}
+		log.Println(req.PostForm)
+
+		if act[0] == "edit" && req.FormValue("api") != "" && req.FormValue("group") != "" && len(req.PostForm) <= 0 {
+			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+			if err == nil {
+				if group,ok := conf_data["group"]; ok {
+					if group,ok := group.(map[string]interface{});ok {
+						for _, key := range []string{"name"} {
+							if str, ok := group[key].(string); ok {
+								req.PostForm[key] = []string{str}
+							}
+						}
+					}
+				}
+			}
+			edit = true
+		}
+	} else {
+		http.Redirect(w, req, "/api_group?act=add", 302)
+	}
+	log.Println(req.PostForm)
+	log.Printf("api_group render\n")
+	RenderView(w, "api_group", map[string]interface{}{"req":req, "edit":edit})
+	log.Printf("api_group handle end\n")
+}
+//添加配置项
+func api_item(w http.ResponseWriter, req *http.Request) {
+
 }
