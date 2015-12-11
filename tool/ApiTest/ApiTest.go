@@ -189,17 +189,21 @@ func api_conf(w http.ResponseWriter, req *http.Request) {
 	log.Printf("api_conf handle start\n")
 	if act, ok := req.Form["act"];ok{
 		conf := &ApiConfig{}
+
 		if len(req.PostForm) > 0 {
+			if _,err :=conf.ReadApiConf(req.FormValue("api_identify"));act[0] == "add" && err==nil {
+				http.Redirect(w,req,fmt.Sprintf("/api_conf?act=edit&api=%v",req.FormValue("api_identify")),302);
+			}
 			conf.SaveConfig(req.PostForm)
 			http.Redirect(w,req,fmt.Sprintf("/api_conf?act=edit&api=%v",req.FormValue("api_identify")),302);
 		}
 		if act[0] == "edit"{
 			if api_identify, ok := req.Form["api"]; ok{
 				if len(req.PostForm) <= 0{
-					conf,err :=conf.ReadApiConf(api_identify[0])
+					conf_data,err :=conf.ReadApiConf(api_identify[0])
 					if err ==nil {
 						for _, key := range []string{"api_host", "api_description", "api_identify", "api_name"} {
-							str, _ := conf[key].(string)
+							str, _ := conf_data[key].(string)
 							req.PostForm[key] = []string{str}
 						}
 					}
@@ -207,6 +211,8 @@ func api_conf(w http.ResponseWriter, req *http.Request) {
 			}
 			edit = true
 		}
+	} else {
+		http.Redirect(w, req, "/api_conf?act=add", 301)
 	}
 	log.Println(req.PostForm)
 	log.Printf("api_conf render\n")
