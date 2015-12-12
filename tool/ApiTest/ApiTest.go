@@ -179,6 +179,58 @@ func (c *ApiConfig)SaveGroup(data map[string][]string) {
 
 	c.WriteApiConf(api_id, conf_map)
 }
+//保存分组项目信息到配置文件
+func (c *ApiConfig)SaveItem(data map[string][]string) {
+	var (
+		conf_map map[string]interface{}
+		group_map map[string]interface{}
+		//group_item map[string]interface{}
+		err error
+		api_id string
+		group_id string
+	)
+
+	if val, ok := data["api_id"]; len(val) > 0 && ok {
+		api_id = val[0]
+	}
+	if val, ok := data["group_id"]; len(val) > 0 && ok {
+		group_id = val[0]
+		//delete(data,"group_id")
+	}
+	if api_id == "" {
+		log.Println("post: api_id is empty")
+		return
+	}
+
+	conf_map, err = c.ReadApiConf(api_id)
+
+
+
+	var group map[string]interface{}
+	if _, ok := conf_map["group"]; !ok {
+		group = make(map[string]interface{})
+	}else {
+		group, _ = conf_map["group"].(map[string]interface{})
+	}
+
+	if err == nil {
+		if _, ok := group[group_id]; ok {
+			group_map = group[group_id].(map[string]interface{})
+		}else {
+			group_map = make(map[string]interface{})
+		}
+		t_data := CvtMapIntf(data)
+		group_map["name"] = t_data["group_name"]
+	}
+	if len(conf_map) <= 0 {
+		log.Println("post: nothing to save")
+		return
+	}
+	group[group_id] = group_map
+	conf_map["group"] = group
+
+	c.WriteApiConf(api_id, conf_map)
+}
 //读取配置文件内容
 func (c *ApiConfig)ReadApiConf(api_id string) (map[string]interface{}, error) {
 	var cnt_map_itf map[string]interface{}
@@ -332,5 +384,63 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 }
 //添加配置项
 func api_item(w http.ResponseWriter, req *http.Request) {
+	edit := false
+	req.ParseForm()
+	log.Printf("api_item handle start\n")
+	if act, ok := req.Form["act"]; ok {
+		conf := &ApiConfig{}
 
+		if len(req.PostForm) > 0 {
+			conf.SaveItem(req.PostForm)
+			//http.Redirect(w, req, fmt.Sprintf("/api_item?act=edit&api=%v&group=%v&item=%v", req.FormValue("api_id"), req.FormValue("group_id"),, req.FormValue("item_id")), 302);
+		}
+
+		if _, err := conf.ReadApiConf(req.FormValue("api")); act[0] == "add" && err == nil {
+			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+			if err == nil {
+				for _, key := range []string{"api_id", "group_name", "group_id"} {
+					if _, ok := req.PostForm[key]; !ok {
+						if str, ok := conf_data[key].(string); ok {
+							req.PostForm[key] = []string{str}
+						}else {
+							req.PostForm[key] = []string{""}
+						}
+					}
+				}
+			}
+		}else {
+			log.Println(err)
+		}
+		log.Println(req.PostForm)
+
+		if act[0] == "edit" && req.FormValue("api") != "" && req.FormValue("group") != "" && len(req.PostForm) <= 0 {
+			if req.FormValue("item") != "" {
+				req.PostForm["api_id"] = []string{req.FormValue("api")}
+				conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+				if err == nil {
+					if group, ok := conf_data["group"]; ok {
+						if group, ok := group.(map[string]interface{}); ok {
+							req.PostForm["group_id"] = []string{req.FormValue("group")}
+							if gTmp, ok := group[req.FormValue("group")].(map[string]interface{}); ok {
+								if str, ok := gTmp["name"].(string); ok {
+									req.PostForm["group_name"] = []string{str}
+								}
+							}else {
+								req.PostForm["group_name"] = []string{""}
+							}
+						}
+					}
+				}
+				edit = true
+			}else {
+				//http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v", req.FormValue("api")), 302);
+			}
+		}
+	} else {
+		//http.Redirect(w, req, "/", 302)
+	}
+	//log.Println("req.PostForm:", req.PostForm)
+	log.Printf("api_item render\n")
+	RenderView(w, "api_item", map[string]interface{}{"req":req, "edit":edit})
+	log.Printf("api_item handle end\n")
 }
