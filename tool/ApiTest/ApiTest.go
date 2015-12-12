@@ -138,8 +138,6 @@ func (c *ApiConfig)SaveGroup(data map[string][]string) {
 		group_id string
 	)
 
-	fmt.Println(data)
-
 	if val, ok := data["api_id"]; len(val) > 0 && ok {
 		api_id = val[0]
 	}
@@ -178,7 +176,6 @@ func (c *ApiConfig)SaveGroup(data map[string][]string) {
 	}
 	group[group_id] = group_map
 	conf_map["group"] = group
-	fmt.Println("conf_map:", conf_map)
 
 	c.WriteApiConf(api_id, conf_map)
 }
@@ -310,11 +307,8 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 					if group, ok := conf_data["group"]; ok {
 						if group, ok := group.(map[string]interface{}); ok {
 							req.PostForm["group_id"] = []string{req.FormValue("group")}
-							fmt.Println(group[req.FormValue("group")])
 							if gTmp, ok := group[req.FormValue("group")].(map[string]interface{}); ok {
-								fmt.Println(gTmp["name"])
 								if str, ok := gTmp["name"].(string); ok {
-									fmt.Println(str)
 									req.PostForm["group_name"] = []string{str}
 								}
 							}else {
@@ -331,7 +325,7 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 	} else {
 		http.Redirect(w, req, "/", 302)
 	}
-	log.Println("req.PostForm:", req.PostForm)
+	//log.Println("req.PostForm:", req.PostForm)
 	log.Printf("api_group render\n")
 	RenderView(w, "api_group", map[string]interface{}{"req":req, "edit":edit})
 	log.Printf("api_group handle end\n")
