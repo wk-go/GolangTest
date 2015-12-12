@@ -302,32 +302,34 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 		}
 		log.Println(req.PostForm)
 
-		if act[0] == "edit" && req.FormValue("api") != "" && req.FormValue("group") != "" && len(req.PostForm) <= 0 {
-			req.PostForm["api_id"] = []string{req.FormValue("api")}
-			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
-			if err == nil {
-				if group, ok := conf_data["group"]; ok {
-					if group, ok := group.(map[string]interface{}); ok {
-						req.PostForm["group_id"] = []string{req.FormValue("group")}
-						fmt.Println(group[req.FormValue("group")])
-						if gTmp, ok := group[req.FormValue("group")].(map[string]interface{}); ok {
-							fmt.Println(gTmp["name"])
-							if str, ok := gTmp["name"].(string); ok {
-								fmt.Println(str)
-								req.PostForm["group_name"] = []string{str}
+		if act[0] == "edit" && req.FormValue("api") != "" && len(req.PostForm) <= 0 {
+			if req.FormValue("group") != "" {
+				req.PostForm["api_id"] = []string{req.FormValue("api")}
+				conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+				if err == nil {
+					if group, ok := conf_data["group"]; ok {
+						if group, ok := group.(map[string]interface{}); ok {
+							req.PostForm["group_id"] = []string{req.FormValue("group")}
+							fmt.Println(group[req.FormValue("group")])
+							if gTmp, ok := group[req.FormValue("group")].(map[string]interface{}); ok {
+								fmt.Println(gTmp["name"])
+								if str, ok := gTmp["name"].(string); ok {
+									fmt.Println(str)
+									req.PostForm["group_name"] = []string{str}
+								}
 							}else {
-								req.PostForm["group_name"] = []string{str[0]}
+								req.PostForm["group_name"] = []string{""}
 							}
-						}else {
-							req.PostForm["group_name"] = []string{""}
 						}
 					}
 				}
+				edit = true
+			}else {
+				http.Redirect(w, req, fmt.Sprintf("/api_group?act=add&api=%v", req.FormValue("api")), 302);
 			}
-			edit = true
 		}
 	} else {
-		//http.Redirect(w, req, "/api_group?act=add", 302)
+		http.Redirect(w, req, "/", 302)
 	}
 	log.Println("req.PostForm:", req.PostForm)
 	log.Printf("api_group render\n")
