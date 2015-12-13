@@ -184,7 +184,8 @@ func (c *ApiConfig)SaveItem(data map[string][]string) {
 	var (
 		conf_map map[string]interface{}
 		group_map map[string]interface{}
-		//group_item map[string]interface{}
+		item_map map[string]interface{}
+		items []interface{}
 		err error
 		api_id string
 		group_id string
@@ -220,12 +221,50 @@ func (c *ApiConfig)SaveItem(data map[string][]string) {
 			group_map = make(map[string]interface{})
 		}
 		t_data := CvtMapIntf(data)
-		group_map["name"] = t_data["group_name"]
+		item_map = make(map[string]interface{})
+		item_map["name"] = t_data["item_name"]
+		item_map["url"] = t_data["item_url"]
+		item_map["dataType"] = t_data["item_dataType"]
+		var getField, postField []interface{} = make([]interface{},0,40), make([]interface{},0,40)
+		for i:= 0; true; i++{
+			var tmp = make(map[string]interface{})
+			if _,ok :=t_data[fmt.Sprintf("get[%v][field]",i)]; ok {
+				tmp["label"] = t_data[fmt.Sprintf("get[%v][label]", i)]
+				tmp["url"] = t_data[fmt.Sprintf("get[%v][field]", i)]
+				tmp["type"] = t_data[fmt.Sprintf("get[%v][type]", i)]
+				tmp["value"] = t_data[fmt.Sprintf("get[%v][value]", i)]
+				tmp["des"] = t_data[fmt.Sprintf("get[%v][des]", i)]
+				getField = append(getField,tmp)
+			}else{
+				break
+			}
+		}
+		for i:= 0; true; i++{
+			var tmp = make(map[string]interface{})
+			if _,ok :=t_data[fmt.Sprintf("post[%v][field]",i)]; ok {
+				tmp["label"] = t_data[fmt.Sprintf("post[%v][label]", i)]
+				tmp["url"] = t_data[fmt.Sprintf("post[%v][field]", i)]
+				tmp["type"] = t_data[fmt.Sprintf("post[%v][type]", i)]
+				tmp["value"] = t_data[fmt.Sprintf("post[%v][value]", i)]
+				tmp["des"] = t_data[fmt.Sprintf("post[%v][des]", i)]
+				postField = append(postField,tmp)
+			}else{
+				break
+			}
+		}
+		item_map["getField"] = getField;
+		item_map["postField"] = postField;
+
+		if _,ok := group_map["items"]; ok{
+			items = make([]interface{},0,40)
+		}
+		items = append(items,item_map)
 	}
 	if len(conf_map) <= 0 {
 		log.Println("post: nothing to save")
 		return
 	}
+	group_map["items"] = items
 	group[group_id] = group_map
 	conf_map["group"] = group
 
@@ -387,6 +426,7 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 	edit := false
 	req.ParseForm()
 	log.Printf("api_item handle start\n")
+	log.Println("req.From:",req.Form)
 	if act, ok := req.Form["act"]; ok {
 		conf := &ApiConfig{}
 
@@ -398,8 +438,12 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 		if _, err := conf.ReadApiConf(req.FormValue("api")); act[0] == "add" && err == nil {
 			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
 			if err == nil {
-				for _, key := range []string{"api_id", "group_name", "group_id"} {
-					if _, ok := req.PostForm[key]; !ok {
+				for _, key := range []string{"api_id", "group_id","item_id","item_name","item_url","item_dataType"} {
+					if key == "group_id"{
+						req.PostForm[key] = []string{req.FormValue("group")}
+						continue
+					}
+					if _, ok := req.Form[key]; !ok {
 						if str, ok := conf_data[key].(string); ok {
 							req.PostForm[key] = []string{str}
 						}else {
@@ -439,7 +483,7 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 	} else {
 		//http.Redirect(w, req, "/", 302)
 	}
-	//log.Println("req.PostForm:", req.PostForm)
+	log.Println("req.PostForm:", req.PostForm)
 	log.Printf("api_item render\n")
 	RenderView(w, "api_item", map[string]interface{}{"req":req, "edit":edit})
 	log.Printf("api_item handle end\n")

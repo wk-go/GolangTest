@@ -6,7 +6,8 @@
 
             <div class="col-sm-10">
                 <input id="api_id" name="api_id"
-                       readonly type="text" class="form-control" placeholder="接口标识" value="{{if .req.PostForm}}{{index .req.PostForm.api_id 0}}{{end}}">
+                       readonly type="text" class="form-control" placeholder="接口标识"
+                       value="{{if .req.PostForm}}{{index .req.PostForm.api_id 0}}{{end}}">
             </div>
         </div>
         <div class="form-group">
@@ -14,7 +15,8 @@
 
             <div class="col-sm-10">
                 <input id="group_id"
-                       readonly name="group_id" type="text" class="form-control" placeholder="分组标识" value="{{if .req.PostForm}}{{index .req.PostForm.group_id 0}}{{end}}">
+                       readonly name="group_id" type="text" class="form-control" placeholder="分组标识"
+                       value="{{if .req.PostForm}}{{index .req.PostForm.group_id 0}}{{end}}">
             </div>
         </div>
 
@@ -22,27 +24,31 @@
             <label for="item_name" class="col-sm-2 control-label">接口名称</label>
 
             <div class="col-sm-10">
-                <input id="item_name" name="item_name" type="text" class="form-control" placeholder="接口名称" value="{{if .req.PostForm}}{{index .req.PostForm.item_name 0}}{{end}}">
+                <input id="item_name" name="item_name" type="text" class="form-control" placeholder="接口名称"
+                       value="{{if .req.PostForm}}{{index .req.PostForm.item_name 0}}{{end}}">
             </div>
         </div>
         <div class="form-group">
             <label for="item_url" class="col-sm-2 control-label">接口url</label>
 
             <div class="col-sm-10">
-                <input id="item_url" name="item_url" type="text" class="form-control" placeholder="接口url" value="{{if .req.PostForm}}{{index .req.PostForm.item_url 0}}{{end}}">
+                <input id="item_url" name="item_url" type="text" class="form-control" placeholder="接口url"
+                       value="{{if .req.PostForm}}{{index .req.PostForm.item_url 0}}{{end}}">
             </div>
         </div>
         <div class="form-group">
             <label for="item_dataType" class="col-sm-2 control-label">返回值类型</label>
 
             <div class="col-sm-10">
-                <input id="item_dataType" name="item_dataType" type="text" class="form-control" placeholder="返回值类型" value="{{if .req.PostForm}}{{index .req.PostForm.item_dataType 0}}{{end}}">
+                <input id="item_dataType" name="item_dataType" type="text" class="form-control" placeholder="返回值类型"
+                       value="{{if .req.PostForm}}{{index .req.PostForm.item_dataType 0}}{{end}}">
             </div>
         </div>
         <div id="input-get">
-                <div class="form-group field-config">
-                    <label for="item_url" class="col-sm-2 control-label">GET参数</label>
-                    <div class="col-sm-10">
+            <div class="form-group field-config">
+                <label class="col-sm-2 control-label">GET参数</label>
+
+                <div class="col-sm-10">
                     <input name="get[0][label]" placeholder="标签" class="form-control col-sm-2">
                     <input name="get[0][field]" placeholder="字段" class="form-control col-sm-2">
                     <select name="get[0][type]" placeholder="类型" class="form-control col-sm-2">
@@ -51,26 +57,47 @@
                         <option value="select">select</option>
                         <option value="checkbox">checkbox</option>
                         <option value="radio">radio</option>
-                        </select>
-                        <input name="get[0][value]" placeholder="目标值" class="form-control col-sm-2">
+                        <option value="file">file</option>
+                    </select>
+                    <input name="get[0][value]" placeholder="目标值" class="form-control col-sm-2">
                     <input name="get[0][des]" placeholder="描述" class="form-control col-sm-2">
                 </div>
             </div>
-        </div>
-        <div id="input-post">
             <div class="form-group field-config">
-                <label for="item_url" class="col-sm-2 control-label">POST参数</label>
+                <label class="col-sm-2 control-label">GET参数</label>
+
                 <div class="col-sm-10">
-                    <input name="post[0][label]" placeholder="标签" class="form-control col-sm-2">
-                    <input name="post[0][field]" placeholder="字段" class="form-control col-sm-2">
-                    <select name="get[0][type]" placeholder="类型" class="form-control col-sm-2">
+                    <input name="get[1][label]" placeholder="标签" class="form-control col-sm-2">
+                    <input name="get[1][field]" placeholder="字段" class="form-control col-sm-2">
+                    <select name="get[1][type]" placeholder="类型" class="form-control col-sm-2">
                         <option value="text">text</option>
                         <option value="textarea">textarea</option>
                         <option value="select">select</option>
                         <option value="checkbox">checkbox</option>
                         <option value="radio">radio</option>
+                        <option value="file">file</option>
                     </select>
-                    <input name="get[0][value]" placeholder="目标值" class="form-control col-sm-2">
+                    <input name="get[1][value]" placeholder="目标值" class="form-control col-sm-2">
+                    <input name="get[1][des]" placeholder="描述" class="form-control col-sm-2">
+                </div>
+            </div>
+        </div>
+        <div id="input-post">
+            <div class="form-group field-config">
+                <label class="col-sm-2 control-label">POST参数</label>
+
+                <div class="col-sm-10">
+                    <input name="post[0][label]" placeholder="标签" class="form-control col-sm-2">
+                    <input name="post[0][field]" placeholder="字段" class="form-control col-sm-2">
+                    <select name="post[0][type]" placeholder="类型" class="form-control col-sm-2">
+                        <option value="text">text</option>
+                        <option value="textarea">textarea</option>
+                        <option value="select">select</option>
+                        <option value="checkbox">checkbox</option>
+                        <option value="radio">radio</option>
+                        <option value="file">file</option>
+                    </select>
+                    <input name="post[0][value]" placeholder="目标值" class="form-control col-sm-2">
                     <input name="post[0][des]" placeholder="描述" class="form-control col-sm-2">
                 </div>
             </div>
@@ -85,8 +112,8 @@
 <div class=""></div>
 <style type="text/css">
     .field-config input,.field-config select{
-        display:inline-block;
-        width:20%;!important
+    display:inline-block;
+    width:20%;!important
     }
 </style>
 {{.footer}}
