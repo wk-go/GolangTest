@@ -9,6 +9,8 @@ import (
 	"html/template"
 	"io"
 	"encoding/json"
+	"strings"
+	"strconv"
 )
 //app配置
 var AppInfo = map[string]string{
@@ -182,93 +184,100 @@ func (c *ApiConfig)SaveGroup(data map[string][]string) {
 //保存分组项目信息到配置文件
 func (c *ApiConfig)SaveItem(data map[string][]string) {
 	var (
-		conf_map map[string]interface{}
-		group_map map[string]interface{}
-		item_map map[string]interface{}
-		items []interface{}
+		confMap map[string]interface{}
+		groupMap map[string]interface{}
+		itemMap map[string]interface{}
+		items map[string]interface{}
+		itemId string
 		err error
-		api_id string
-		group_id string
+		apiID string
+		groupID string
 	)
 
 	if val, ok := data["api_id"]; len(val) > 0 && ok {
-		api_id = val[0]
+		apiID = val[0]
 	}
 	if val, ok := data["group_id"]; len(val) > 0 && ok {
-		group_id = val[0]
+		groupID = val[0]
 		//delete(data,"group_id")
 	}
-	if api_id == "" {
+	if apiID == "" {
 		log.Println("post: api_id is empty")
 		return
 	}
 
-	conf_map, err = c.ReadApiConf(api_id)
+	confMap, err = c.ReadApiConf(apiID)
 
 
 
 	var group map[string]interface{}
-	if _, ok := conf_map["group"]; !ok {
+	if _, ok := confMap["group"]; !ok {
 		group = make(map[string]interface{})
 	}else {
-		group, _ = conf_map["group"].(map[string]interface{})
+		group, _ = confMap["group"].(map[string]interface{})
 	}
 
 	if err == nil {
-		if _, ok := group[group_id]; ok {
-			group_map = group[group_id].(map[string]interface{})
+		if _, ok := group[groupID]; ok {
+			groupMap = group[groupID].(map[string]interface{})
 		}else {
-			group_map = make(map[string]interface{})
+			groupMap = make(map[string]interface{})
 		}
 		t_data := CvtMapIntf(data)
-		item_map = make(map[string]interface{})
-		item_map["name"] = t_data["item_name"]
-		item_map["url"] = t_data["item_url"]
-		item_map["dataType"] = t_data["item_dataType"]
-		var getField, postField []interface{} = make([]interface{},0,40), make([]interface{},0,40)
-		for i:= 0; true; i++{
+		itemMap = make(map[string]interface{})
+		itemMap["name"] = t_data["item_name"]
+		itemMap["url"] = t_data["item_url"]
+		if str, ok := itemMap["url"].(string); ok {
+			itemId = strings.Replace(str, "/", "_", -1);
+		}
+		itemMap["dataType"] = t_data["item_dataType"]
+		var getField, postField []interface{} = make([]interface{}, 0, 40), make([]interface{}, 0, 40)
+		for i := 0; true; i++ {
 			var tmp = make(map[string]interface{})
-			if _,ok :=t_data[fmt.Sprintf("get[%v][field]",i)]; ok {
+			if _, ok := t_data[fmt.Sprintf("get[%v][field]", i)]; ok {
 				tmp["label"] = t_data[fmt.Sprintf("get[%v][label]", i)]
-				tmp["url"] = t_data[fmt.Sprintf("get[%v][field]", i)]
+				tmp["field"] = t_data[fmt.Sprintf("get[%v][field]", i)]
 				tmp["type"] = t_data[fmt.Sprintf("get[%v][type]", i)]
 				tmp["value"] = t_data[fmt.Sprintf("get[%v][value]", i)]
 				tmp["des"] = t_data[fmt.Sprintf("get[%v][des]", i)]
-				getField = append(getField,tmp)
-			}else{
+				getField = append(getField, tmp)
+			}else {
 				break
 			}
 		}
-		for i:= 0; true; i++{
+		for i := 0; true; i++ {
 			var tmp = make(map[string]interface{})
-			if _,ok :=t_data[fmt.Sprintf("post[%v][field]",i)]; ok {
+			if _, ok := t_data[fmt.Sprintf("post[%v][field]", i)]; ok {
 				tmp["label"] = t_data[fmt.Sprintf("post[%v][label]", i)]
-				tmp["url"] = t_data[fmt.Sprintf("post[%v][field]", i)]
+				tmp["field"] = t_data[fmt.Sprintf("post[%v][field]", i)]
 				tmp["type"] = t_data[fmt.Sprintf("post[%v][type]", i)]
 				tmp["value"] = t_data[fmt.Sprintf("post[%v][value]", i)]
 				tmp["des"] = t_data[fmt.Sprintf("post[%v][des]", i)]
-				postField = append(postField,tmp)
-			}else{
+				postField = append(postField, tmp)
+			}else {
 				break
 			}
 		}
-		item_map["getField"] = getField;
-		item_map["postField"] = postField;
+		itemMap["getField"] = getField;
+		itemMap["postField"] = postField;
 
-		if _,ok := group_map["items"]; ok{
-			items = make([]interface{},0,40)
+		if _, ok := groupMap["items"]; !ok {
+			items = make(map[string]interface{})
+		}else {
+			items, _ = groupMap["items"].(map[string]interface{})
 		}
-		items = append(items,item_map)
+		fmt.Printf("items:%v;item len:%v\n", items, len(items))
+		items[itemId] = itemMap
 	}
-	if len(conf_map) <= 0 {
+	if len(confMap) <= 0 {
 		log.Println("post: nothing to save")
 		return
 	}
-	group_map["items"] = items
-	group[group_id] = group_map
-	conf_map["group"] = group
+	groupMap["items"] = items
+	group[groupID] = groupMap
+	confMap["group"] = group
 
-	c.WriteApiConf(api_id, conf_map)
+	c.WriteApiConf(apiID, confMap)
 }
 //读取配置文件内容
 func (c *ApiConfig)ReadApiConf(api_id string) (map[string]interface{}, error) {
@@ -422,11 +431,89 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 	log.Printf("api_group handle end\n")
 }
 //添加配置项
+type TplWriter struct{
+	content []byte
+}
+func (t *TplWriter)Write(b []byte)(n int, err error){
+	if t.content ==nil{
+		t.content = make([]byte,len(b))
+	}
+	for i:=0; i<len(b);i++{
+		t.content = append(t.content,b[i])
+	}
+	return len(b),nil
+}
+func (t *TplWriter)Read()(cnt string, n int){
+	if len(t.content) <=0{
+		return "", 0
+	}
+	cnt = string(t.content)
+	t.content = make([]byte,0)
+	return cnt,len(cnt)
+}
+func _item_field(data map[string][]string) (post string, get string,postLen int, getLen int){
+	valTpl :=`
+	<div class="form-group field-config">
+                <label class="col-sm-2 control-label">{{.methodName}}参数</label>
+
+                <div class="col-sm-10">
+                    <input name="{{.method}}[{{.idx}}][label]" value="{{.label}}" placeholder="标签" class="form-control col-sm-2">
+                    <input name="{{.method}}[{{.idx}}][field]" value="{{.field}}" placeholder="字段" class="form-control col-sm-2">
+                    <select name="{{.method}}[{{.idx}}][type]" placeholder="类型" class="form-control col-sm-2">
+                        <option value="text">text</option>
+                        <option value="textarea">textarea</option>
+                        <option value="select">select</option>
+                        <option value="checkbox">checkbox</option>
+                        <option value="radio">radio</option>
+                        <option value="file">file</option>
+                    </select>
+                    <input name="{{.method}}[{{.idx}}][value]" value="{{.value}}" placeholder="目标值" class="form-control col-sm-2">
+                    <input name="{{.method}}[{{.idx}}][des]" value="{{.des}}" placeholder="描述" class="form-control col-sm-2">
+                </div>
+            </div>
+	`
+	field := map[string]string{
+		"post":"",
+		"get":"",
+	}
+	fieldLen := map[string]int{
+		"post":0,
+		"get":0,
+	}
+	tplWriter := new(TplWriter)
+	for key,_ := range field {
+		var tmp = make(map[string]string)
+		tmp["method"] = key
+		tmp["methodName"] = strings.ToUpper(key)
+		for i := 0; true; i++ {
+			fieldLen[key]=i
+			tmp["idx"] = strconv.Itoa(i)
+			if _, ok := data[fmt.Sprintf("%v[%v][field]", key,i)]; ok {
+				tmp["label"] = data[fmt.Sprintf("%v[%v][label]", key,i)][0]
+				tmp["field"] = data[fmt.Sprintf("%v[%v][field]", key,i)][0]
+				tmp["type"] = data[fmt.Sprintf("%v[%v][type]", key,i)][0]
+				tmp["value"] = data[fmt.Sprintf("%v[%v][value]", key,i)][0]
+				tmp["des"] = data[fmt.Sprintf("%v[%v][des]", key,i)][0]
+
+				tmpl, err := template.New("val").Parse(valTpl)
+				if err != nil { panic(err) }
+				err = tmpl.Execute(tplWriter, tmp)
+				if err != nil { panic(err) }
+				if tplStr,l := tplWriter.Read();l>0 {
+					field[key] = strings.Join([]string{field[key], tplStr}, "")
+				}
+			}else {
+				break
+			}
+		}
+	}
+	return field["post"], field["get"],fieldLen["post"], fieldLen["get"]
+}
 func api_item(w http.ResponseWriter, req *http.Request) {
 	edit := false
 	req.ParseForm()
 	log.Printf("api_item handle start\n")
-	log.Println("req.From:",req.Form)
+	log.Println("req.From:", req.Form)
 	if act, ok := req.Form["act"]; ok {
 		conf := &ApiConfig{}
 
@@ -438,8 +525,8 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 		if _, err := conf.ReadApiConf(req.FormValue("api")); act[0] == "add" && err == nil {
 			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
 			if err == nil {
-				for _, key := range []string{"api_id", "group_id","item_id","item_name","item_url","item_dataType"} {
-					if key == "group_id"{
+				for _, key := range []string{"api_id", "group_id", "item_id", "item_name", "item_url", "item_dataType"} {
+					if key == "group_id" {
 						req.PostForm[key] = []string{req.FormValue("group")}
 						continue
 					}
@@ -466,25 +553,60 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 						if group, ok := group.(map[string]interface{}); ok {
 							req.PostForm["group_id"] = []string{req.FormValue("group")}
 							if gTmp, ok := group[req.FormValue("group")].(map[string]interface{}); ok {
-								if str, ok := gTmp["name"].(string); ok {
-									req.PostForm["group_name"] = []string{str}
+								itemsMap, _ := gTmp["items"].(map[string]interface{})
+								if itemMap, ok := itemsMap[req.FormValue("item")].(map[string]interface{}); ok {
+									var methodMap = map[string]string{
+										"getField":"get",
+										"postField":"post",
+									}
+									for key, val := range itemMap {
+										if _,ok := methodMap[key];ok {
+											fmt.Println(val)
+											field, _ := val.([]interface{})
+											fmt.Println(field)
+											for k, _ := range field {
+												v,_ := field[k].(map[string]string)
+												fmt.Println(v)
+												req.PostForm[fmt.Sprintf("%v[%v][label]",methodMap[key], k)] = []string{v["label"]}
+												req.PostForm[fmt.Sprintf("%v[%v][field]",methodMap[key], k)] = []string{v["field"]}
+												req.PostForm[fmt.Sprintf("%v[%v][type]",methodMap[key], k)] = []string{v["type"]}
+												req.PostForm[fmt.Sprintf("%v[%v][value]",methodMap[key], k)] = []string{v["value"]}
+												req.PostForm[fmt.Sprintf("%v[%v][des]",methodMap[key], k)] = []string{v["des"]}
+											}
+											continue
+										}
+										if str, ok := val.(string); ok {
+											req.PostForm[fmt.Sprintf("item_%v", key)] = []string{str}
+										}
+									}
+								}else {
+									req.PostForm["group_name"] = []string{""}
 								}
-							}else {
-								req.PostForm["group_name"] = []string{""}
 							}
 						}
 					}
+					edit = true
+				}else {
+					//http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v", req.FormValue("api")), 302);
 				}
-				edit = true
-			}else {
-				//http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v", req.FormValue("api")), 302);
 			}
+			fmt.Println("!!!!!:",req.PostForm)
 		}
 	} else {
 		//http.Redirect(w, req, "/", 302)
 	}
+	postItem, getItem,postLen,getLen := _item_field(req.PostForm)
+	fmt.Printf(postItem, getItem)
 	log.Println("req.PostForm:", req.PostForm)
 	log.Printf("api_item render\n")
-	RenderView(w, "api_item", map[string]interface{}{"req":req, "edit":edit})
+	RenderView(w, "api_item", map[string]interface{}{
+		"req":req,
+		"edit":edit,
+		"postItem":postItem,
+		"getItem":getItem,
+		"postLen":postLen,
+		"getLen":getLen,
+	})
 	log.Printf("api_item handle end\n")
+
 }
