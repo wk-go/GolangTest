@@ -451,7 +451,7 @@ func (t *TplWriter)Read()(cnt string, n int){
 	t.content = make([]byte,0)
 	return cnt,len(cnt)
 }
-func _item_field(data map[string][]string) (post string, get string,postLen int, getLen int){
+func _item_field(data map[string][]string) (post template.HTML, get template.HTML,postLen int, getLen int){
 	valTpl :=`
 	<div class="form-group field-config">
                 <label class="col-sm-2 control-label">{{.methodName}}参数</label>
@@ -507,7 +507,7 @@ func _item_field(data map[string][]string) (post string, get string,postLen int,
 			}
 		}
 	}
-	return field["post"], field["get"],fieldLen["post"], fieldLen["get"]
+	return template.HTML(field["post"]), template.HTML(field["get"]),fieldLen["post"], fieldLen["get"]
 }
 func api_item(w http.ResponseWriter, req *http.Request) {
 	edit := false
@@ -596,7 +596,7 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 		//http.Redirect(w, req, "/", 302)
 	}
 	postItem, getItem,postLen,getLen := _item_field(req.PostForm)
-	fmt.Printf(postItem, getItem)
+	//fmt.Printf(postItem, getItem)
 	log.Println("req.PostForm:", req.PostForm)
 	log.Printf("api_item render\n")
 	RenderView(w, "api_item", map[string]interface{}{
