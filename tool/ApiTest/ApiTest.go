@@ -516,7 +516,13 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 
 		if len(req.PostForm) > 0 {
 			conf.SaveItem(req.PostForm)
-			http.Redirect(w, req, fmt.Sprintf("/api_item?act=edit&api=%v&group=%v&item=%v", req.FormValue("api_id"), req.FormValue("group_id"), req.FormValue("item_id")), 302);
+			if act[0] == "add" {
+				item_id := req.FormValue("item")
+				if item_id == "" {
+					item_id = strings.Replace(req.PostFormValue("item_url"), "/", "_", -1)
+				}
+				http.Redirect(w, req, fmt.Sprintf("/api_item?act=edit&api=%v&group=%v&item=%v", req.FormValue("api_id"), req.FormValue("group_id"), item_id), 302);
+			}
 		}
 
 		if _, err := conf.ReadApiConf(req.FormValue("api")); act[0] == "add" && err == nil {
@@ -581,9 +587,9 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 						}
 					}
 					edit = true
-				}else {
-					http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v&group=%v", req.FormValue("api"),req.FormValue("group")), 302);
 				}
+			}else {
+				http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v&group=%v", req.FormValue("api"),req.FormValue("group")), 302);
 			}
 		}
 	} else {
