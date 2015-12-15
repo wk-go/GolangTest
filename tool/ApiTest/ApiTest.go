@@ -430,7 +430,7 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 	RenderView(w, "api_group", map[string]interface{}{"req":req, "edit":edit})
 	log.Printf("api_group handle end\n")
 }
-//添加配置项
+//api_item start ------------------------------------------------------------------------
 type TplWriter struct{
 	content []byte
 }
@@ -506,6 +506,8 @@ func _item_field(data map[string][]string) (post template.HTML, get template.HTM
 	}
 	return template.HTML(field["post"]), template.HTML(field["get"]),fieldLen["post"], fieldLen["get"]
 }
+
+//添加配置项
 func api_item(w http.ResponseWriter, req *http.Request) {
 	edit := false
 	req.ParseForm()
@@ -610,3 +612,4 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 	log.Printf("api_item handle end\n")
 
 }
+//api_item end ------------------------------------------------------------------------
