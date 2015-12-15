@@ -443,7 +443,7 @@ func (t *TplWriter)Write(b []byte)(n int, err error){
 	}
 	return len(b),nil
 }
-func (t *TplWriter)Read()(cnt string, n int){
+func (t *TplWriter)ReadContent()(cnt string, n int){
 	if len(t.content) <=0{
 		return "", 0
 	}
@@ -452,26 +452,23 @@ func (t *TplWriter)Read()(cnt string, n int){
 	return cnt,len(cnt)
 }
 func _item_field(data map[string][]string) (post template.HTML, get template.HTML,postLen int, getLen int){
-	valTpl :=`
-	<div class="form-group field-config">
+	valTpl :=`<div class="form-group field-config">
                 <label class="col-sm-2 control-label">{{.methodName}}参数</label>
-
                 <div class="col-sm-10">
                     <input name="{{.method}}[{{.idx}}][label]" value="{{.label}}" placeholder="标签" class="form-control col-sm-2">
                     <input name="{{.method}}[{{.idx}}][field]" value="{{.field}}" placeholder="字段" class="form-control col-sm-2">
                     <select name="{{.method}}[{{.idx}}][type]" placeholder="类型" class="form-control col-sm-2">
-                        <option value="text">text</option>
-                        <option value="textarea">textarea</option>
-                        <option value="select">select</option>
-                        <option value="checkbox">checkbox</option>
-                        <option value="radio">radio</option>
-                        <option value="file">file</option>
+                        <option value="text"{{ if eq .type "text"}} selected{{end}}>text</option>
+                        <option value="textarea"{{if eq .type "textarea"}} selected{{end}}>textarea</option>
+                        <option value="select"{{if eq .type "select"}} selected{{end}}>select</option>
+                        <option value="checkbox"{{if eq .type "checkbox"}} selected{{end}}>checkbox</option>
+                        <option value="radio"{{if eq .type "radio"}} selected{{end}}>radio</option>
+                        <option value="file"{{if eq .type "file"}} selected{{end}}>file</option>
                     </select>
                     <input name="{{.method}}[{{.idx}}][value]" value="{{.value}}" placeholder="目标值" class="form-control col-sm-2">
                     <input name="{{.method}}[{{.idx}}][des]" value="{{.des}}" placeholder="描述" class="form-control col-sm-2">
                 </div>
-            </div>
-	`
+            </div>`
 	field := map[string]string{
 		"post":"",
 		"get":"",
@@ -481,26 +478,26 @@ func _item_field(data map[string][]string) (post template.HTML, get template.HTM
 		"get":0,
 	}
 	tplWriter := new(TplWriter)
-	for key,_ := range field {
-		var tmp = make(map[string]string)
-		tmp["method"] = key
-		tmp["methodName"] = strings.ToUpper(key)
-		for i := 0; true; i++ {
-			fieldLen[key]=i
-			tmp["idx"] = strconv.Itoa(i)
-			if _, ok := data[fmt.Sprintf("%v[%v][field]", key,i)]; ok {
-				tmp["label"] = data[fmt.Sprintf("%v[%v][label]", key,i)][0]
-				tmp["field"] = data[fmt.Sprintf("%v[%v][field]", key,i)][0]
-				tmp["type"] = data[fmt.Sprintf("%v[%v][type]", key,i)][0]
-				tmp["value"] = data[fmt.Sprintf("%v[%v][value]", key,i)][0]
-				tmp["des"] = data[fmt.Sprintf("%v[%v][des]", key,i)][0]
 
+	for method,_ := range field {
+		var tmp = make(map[string]string)
+		tmp["method"] = method
+		tmp["methodName"] = strings.ToUpper(method)
+		for i := 0; true; i++ {
+			fieldLen[method]=i
+			tmp["idx"] = strconv.Itoa(i)
+			if _, ok := data[fmt.Sprintf("%v[%v][field]", method,i)]; ok {
+				tmp["label"] = data[fmt.Sprintf("%v[%v][label]", method,i)][0]
+				tmp["field"] = data[fmt.Sprintf("%v[%v][field]", method,i)][0]
+				tmp["type"] = data[fmt.Sprintf("%v[%v][type]", method,i)][0]
+				tmp["value"] = data[fmt.Sprintf("%v[%v][value]", method,i)][0]
+				tmp["des"] = data[fmt.Sprintf("%v[%v][des]", method,i)][0]
 				tmpl, err := template.New("val").Parse(valTpl)
 				if err != nil { panic(err) }
 				err = tmpl.Execute(tplWriter, tmp)
 				if err != nil { panic(err) }
-				if tplStr,l := tplWriter.Read();l>0 {
-					field[key] = strings.Join([]string{field[key], tplStr}, "")
+				if tplStr,l := tplWriter.ReadContent();l>0 {
+					field[method] = strings.Join([]string{field[method], tplStr}, "")
 				}
 			}else {
 				break
@@ -519,7 +516,7 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 
 		if len(req.PostForm) > 0 {
 			conf.SaveItem(req.PostForm)
-			//http.Redirect(w, req, fmt.Sprintf("/api_item?act=edit&api=%v&group=%v&item=%v", req.FormValue("api_id"), req.FormValue("group_id"),, req.FormValue("item_id")), 302);
+			http.Redirect(w, req, fmt.Sprintf("/api_item?act=edit&api=%v&group=%v&item=%v", req.FormValue("api_id"), req.FormValue("group_id"), req.FormValue("item_id")), 302);
 		}
 
 		if _, err := conf.ReadApiConf(req.FormValue("api")); act[0] == "add" && err == nil {
@@ -542,7 +539,6 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 		}else {
 			log.Println(err)
 		}
-		log.Println(req.PostForm)
 
 		if act[0] == "edit" && req.FormValue("api") != "" && req.FormValue("group") != "" && len(req.PostForm) <= 0 {
 			if req.FormValue("item") != "" {
@@ -561,17 +557,16 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 									}
 									for key, val := range itemMap {
 										if _,ok := methodMap[key];ok {
-											fmt.Println(val)
 											field, _ := val.([]interface{})
-											fmt.Println(field)
 											for k, _ := range field {
-												v,_ := field[k].(map[string]string)
-												fmt.Println(v)
-												req.PostForm[fmt.Sprintf("%v[%v][label]",methodMap[key], k)] = []string{v["label"]}
-												req.PostForm[fmt.Sprintf("%v[%v][field]",methodMap[key], k)] = []string{v["field"]}
-												req.PostForm[fmt.Sprintf("%v[%v][type]",methodMap[key], k)] = []string{v["type"]}
-												req.PostForm[fmt.Sprintf("%v[%v][value]",methodMap[key], k)] = []string{v["value"]}
-												req.PostForm[fmt.Sprintf("%v[%v][des]",methodMap[key], k)] = []string{v["des"]}
+												field_map,_ := field[k].(map[string]interface{})
+												for k_field,v := range field_map{
+													if str,ok := v.(string); ok {
+														req.PostForm[fmt.Sprintf("%v[%v][%v]", methodMap[key], k, k_field)] = []string{str}
+													}else{
+														req.PostForm[fmt.Sprintf("%v[%v][%v]", methodMap[key], k, k_field)] = []string{""}
+													}
+												}
 											}
 											continue
 										}
@@ -587,10 +582,9 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 					}
 					edit = true
 				}else {
-					//http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v", req.FormValue("api")), 302);
+					http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v&group=%v", req.FormValue("api"),req.FormValue("group")), 302);
 				}
 			}
-			fmt.Println("!!!!!:",req.PostForm)
 		}
 	} else {
 		//http.Redirect(w, req, "/", 302)
