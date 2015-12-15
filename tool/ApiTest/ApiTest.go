@@ -35,6 +35,7 @@ var UrlRoute = map[string]http.HandlerFunc{
 	"/api_conf":api_conf,
 	"/api_group":api_group,
 	"/api_item":api_item,
+	"/api_show":api_show,
 }
 func main() {
 	//设置静态文件
@@ -613,3 +614,16 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 
 }
 //api_item end ------------------------------------------------------------------------
+//api_show start ------------------------------------------------------------------------
+//显示接口信息
+func api_show(w http.ResponseWriter, req *http.Request){
+	req.ParseForm()
+	log.Printf("api_item handle start\n")
+	log.Println("req.From:", req.Form)
+	if act := req.FormValue("act"); act=="" {
+
+	}else{
+
+	}
+}
+//api_show end ------------------------------------------------------------------------
