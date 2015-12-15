@@ -457,7 +457,7 @@ func _item_field(data map[string][]string) (post template.HTML, get template.HTM
                 <div class="col-sm-10">
                     <input name="{{.method}}[{{.idx}}][label]" value="{{.label}}" placeholder="标签" class="form-control col-sm-2">
                     <input name="{{.method}}[{{.idx}}][field]" value="{{.field}}" placeholder="字段" class="form-control col-sm-2">
-                    <select name="{{.method}}[{{.idx}}][type]" placeholder="类型" class="form-control col-sm-2">
+                    <select name="{{.method}}[{{.idx}}][type]" class="form-control col-sm-2">
                         <option value="text"{{ if eq .type "text"}} selected{{end}}>text</option>
                         <option value="textarea"{{if eq .type "textarea"}} selected{{end}}>textarea</option>
                         <option value="select"{{if eq .type "select"}} selected{{end}}>select</option>

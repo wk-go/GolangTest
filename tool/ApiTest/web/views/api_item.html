@@ -44,6 +44,12 @@
                        value="{{if .req.PostForm}}{{index .req.PostForm.item_dataType 0}}{{end}}">
             </div>
         </div>
+        <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2">
+                    <a href="javascript:void(0)" onclick="add_field_tpl('get')" class="btn btn-primary">添加GET参数</a>
+                    <a href="javascript:void(0)" onclick="add_field_tpl()" class="btn btn-primary">添加POST参数</a>
+                </div>
+        </div>
         <div id="input-get">
             {{.getItem}}
         </div>
@@ -64,13 +70,13 @@
     width:20%;!important
     }
 </style>
-<script id="field_tpl" type="template">
+<script id="field_tpl" type="text/html">
     <div class="form-group field-config">
-        <label class="col-sm-2 control-label">POST参数</label>
+        <label class="col-sm-2 control-label"><%=methodName%>参数</label>
         <div class="col-sm-10">
-            <input name="post[0][label]" placeholder="标签" class="form-control col-sm-2">
-            <input name="post[0][field]" placeholder="字段" class="form-control col-sm-2">
-            <select name="post[0][type]" placeholder="类型" class="form-control col-sm-2">
+            <input name="<%=method%>[<%=index%>][label]" placeholder="标签" class="form-control col-sm-2">
+            <input name="<%=method%>[<%=index%>][field]" placeholder="字段" class="form-control col-sm-2">
+            <select name="<%=method%>[<%=index%>][type]" class="form-control col-sm-2">
                 <option value="text">text</option>
                 <option value="textarea">textarea</option>
                 <option value="select">select</option>
@@ -78,12 +84,29 @@
                 <option value="radio">radio</option>
                 <option value="file">file</option>
             </select>
-            <input name="post[0][value]" placeholder="目标值" class="form-control col-sm-2">
-            <input name="post[0][des]" placeholder="描述" class="form-control col-sm-2">
+            <input name="<%=method%>[<%=index%>][value]" placeholder="目标值" class="form-control col-sm-2">
+            <input name="<%=method%>[<%=index%>][des]" placeholder="描述" class="form-control col-sm-2">
         </div>
     </div>
 </script>
 <script type="text/javascript">
+    var count ={
+        post : {{.postLen}},
+        get : {{.getLen}}
+    };
     var tpl="";
+    function add_field_tpl(type){
+        if(type == undefined){
+            type = "post";
+        }
+        var data={
+            method:type,
+            methodName:type.toUpperCase(),
+            index:count[type]
+        };
+        var html=baidu.template('field_tpl',data);
+        $("#input-"+type).append(html);
+        count[type]++;
+    }
 </script>
 {{.footer}}
