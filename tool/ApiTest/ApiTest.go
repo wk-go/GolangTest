@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"strings"
 	"strconv"
+	"path/filepath"
 )
 //app配置
 var AppInfo = map[string]string{
@@ -619,11 +620,53 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 func api_show(w http.ResponseWriter, req *http.Request){
 	req.ParseForm()
 	log.Printf("api_item handle start\n")
-	log.Println("req.From:", req.Form)
+	fmt.Println(":::req.From:::", req.Form)
 	if act := req.FormValue("act"); act=="" {
+		data := make(map[string]interface{})
+		api_setting,_ := Config["api"].(map[string]string)
+		fmt.Println(":::api_setting:::",api_setting)
+		apiConf := new(ApiConfig)
+		apiMap := make(map[string]interface{})
+		if files,err := filepath.Glob(fmt.Sprintf("%v/*.json",api_setting["path"])); err == nil {
+			fmt.Println(":::files:::", files)
+			for _,filename := range files {
+				fmt.Println(":::file:::", filename)
+				apiId := filename[strings.LastIndex(filename,string(filepath.Separator))+1:strings.LastIndex(filename,".json")]
+				fmt.Println(":::api_id:::", apiId)
+				apiInfo := make(map[string]interface{})
+				if conf,err := apiConf.ReadApiConf(apiId); err ==nil{
+					for _,key := range []string{"api_id","api_name","api_host","api_description"} {
+						apiInfo[key] = conf[key]
+					}
+				}else{
+					log.Println("api_show:",err)
+				}
 
+				apiMap[apiId] = apiInfo
+			}
+		}else{
+			log.Println(err)
+		}
+		data["apiList"] = apiMap
+		if apiListJson, err := json.Marshal(apiMap); err == nil {
+			data["apiListJson"] = template.JS(string(apiListJson))
+		}
+		RenderView(w,"api_show",data)
 	}else{
+		if act=="get_group"{
+			apiConf := new(ApiConfig)
+			if apiId := req.Form.Get("api_id"); apiId != "" {
+				if conf, err := apiConf.ReadApiConf(apiId); err == nil {
+					if conf, err := json.Marshal(conf["group"]); err == nil {
+						fmt.Fprint(w, string(conf))
+					}
+				}else {
+					log.Println("api_show:", err)
+				}
+			}else{
 
+			}
+		}
 	}
 }
 //api_show end ------------------------------------------------------------------------
