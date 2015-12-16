@@ -26,6 +26,7 @@
             </select>
         </div>
     </form>
+    <div id="api-info"></div>
     <form method="post" class="form-horizontal" onsubmit="return false;">
         <div id="submit-api">
         </div>
@@ -73,10 +74,22 @@
         </div>
     </div>
 </script>
+<script id="api-info-tpl" type="text/html">
+    <div class="container">
+        <div id="api-common-info" class="row">
+            <div class="col-sm-1 col-sm-offset-2">API&nbsp;NAME:<%=api_name%></div>
+<div class="col-sm-2">Host:<%=api_host%></div>
+</div>
+<div class="row">
+    <div class="col-sm-10 col-sm-offset-2"><%=api_description%></div>
+</div>
+</div>
+</script>
 
 <script type="text/javascript">
     var apiList = {{.apiListJson}};
     var tpl="";
+    //显示表单信息
     function create_form(item_data){
         var html ="";
         if(item_data["getField"] != undefined && item_data["getField"] != ""){
@@ -96,6 +109,7 @@
         html += '';
         return html;
     }
+    //显示元素信息
     function show_sub(id,obj){
         if(id==""){
             return;
@@ -130,6 +144,7 @@
                 });
             }
             $("#item-list").html(t_str);
+            $('#api-info').html(baidu.template('api-info-tpl',apiList[api_id]));
         }
         if(obj.attr('id') == 'item-list'){
             var api_id = $("#api-list").val();
@@ -139,6 +154,10 @@
                 t_str = create_form(apiList[api_id]["group"][group_id]["items"][id]);
             }
             $("#submit-api").html(t_str);
+
+            var info_tpl='<div class="col-sm-2">接口名称:<%=name%></div>'
+                         +'<div class="col-sm-2">Url:<%=url%></div>';
+            $('#api-common-info').append(baidu.template(info_tpl,apiList[api_id]["group"][group_id]["items"][id]));
         }
     }
     $(".change-api").change(function(){
