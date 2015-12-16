@@ -28,6 +28,8 @@
     </form>
     <div id="api-info"></div>
     <form method="post" class="form-horizontal" onsubmit="return false;">
+        <div id="submit-common">
+        </div>
         <div id="submit-api">
         </div>
         <div class="form-group">
@@ -44,18 +46,18 @@
     width:20%;!important
     }
 </style>
-<script id="field_tpl" type="text/html">
+<script id="field-tpl" type="text/html">
 
     <div class="form-group">
-        <label for="<%=method%>:<%=field%>" class="col-sm-2 control-label"><%=label%>(<%=methodName%>)</label>
+        <label for="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" class="col-sm-2 control-label"><%=label%><%if(methodName != undefined){%>(<%=methodName%>)<% }%></label>
 
         <div class="col-sm-10">
     <% if(type=="textarea"){ %>
-                <textarea id="<%=method%>:<%=field%>" name="<%=method%>:<%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"></textarea>
+                <textarea id="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" name="<%=method%>:<%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"><%=value%></textarea>
     <% }else if(type=="select" || type=="multiple-select"){
             value = value.split("|");
     %>
-            <select id="<%=method%>:<%=field%>" name="<%=method%>:<%=field%>" <%if(type=="multiple-select"){%>multiple="multiple"<% }%> class="form-control">
+            <select id="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" name="<%=method%>:<%=field%>" <%if(type=="multiple-select"){%>multiple="multiple"<% }%> class="form-control">
                 <option value="">请选择</option>
                 <% for(var i=0; i< value.length; i++){
                     var v = value[i].split(":");
@@ -67,17 +69,17 @@
                 } %>
             </select>
     <% } else {%>
-            <input id="<%=method%>:<%=field%>" name="<%=method%>:<%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"
-                   value="">
+            <input id="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" name="<%=method%>:<%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"
+                   value="<%=value%>">
     <% } %>
-            <span id="helpBlock" class="help-block"><%=des%></span>
+            <%if(des != undefined){%><span id="helpBlock" class="help-block"><%=des%></span><% }%>
         </div>
     </div>
 </script>
 <script id="api-info-tpl" type="text/html">
     <div class="container">
         <div id="api-common-info" class="row">
-            <div class="col-sm-1 col-sm-offset-2">API&nbsp;NAME:<%=api_name%></div>
+            <div class="col-sm-2 col-sm-offset-2">API:<%=api_name%></div>
 <div class="col-sm-2">Host:<%=api_host%></div>
 </div>
 <div class="row">
@@ -96,14 +98,14 @@
             $.each(item_data["getField"],function(i,val){
                 val["method"] = "get";
                 val["methodName"] ="GET";
-                html += baidu.template('field_tpl',val);
+                html += baidu.template('field-tpl',val);
             });
         }
         if(item_data["postField"] != undefined && item_data["postField"] != ""){
             $.each(item_data["postField"],function(i,val){
                 val["method"] = "post";
                 val["methodName"] ="POST";
-                html += baidu.template('field_tpl',val);
+                html += baidu.template('field-tpl',val);
             });
         }
         html += '';
@@ -134,6 +136,8 @@
                 });
             }
             $("#group-list").html(t_str);
+            $('#api-info').html(baidu.template('api-info-tpl',apiList[id]));
+            $("#submit-common").html(baidu.template('field-tpl',{label:"Host",value:apiList[id]["api_host"],type:"text",method:undefined,methodName:undefined,des:undefined}));
         }
         if(obj.attr('id') == 'group-list'){
             var api_id = $("#api-list").val();
@@ -144,16 +148,18 @@
                 });
             }
             $("#item-list").html(t_str);
-            $('#api-info').html(baidu.template('api-info-tpl',apiList[api_id]));
         }
         if(obj.attr('id') == 'item-list'){
             var api_id = $("#api-list").val();
             var group_id = $("#group-list").val();
             var t_str = '';
             if(apiList[api_id]["group"][group_id]["items"][id] != undefined && apiList[api_id]["group"][group_id]["items"][id] !=""){
-                t_str = create_form(apiList[api_id]["group"][group_id]["items"][id]);
+                var item_data=apiList[api_id]["group"][group_id]["items"][id];
+                t_str = create_form(item_data);
+                $("#submit-api").html(baidu.template('field-tpl',{label:"Url",value:item_data["url"],type:"text",method:undefined,methodName:undefined,des:undefined}));
             }
-            $("#submit-api").html(t_str);
+
+            $("#submit-api").append(t_str);
 
             var info_tpl='<div class="col-sm-2">接口名称:<%=name%></div>'
                          +'<div class="col-sm-2">Url:<%=url%></div>';
