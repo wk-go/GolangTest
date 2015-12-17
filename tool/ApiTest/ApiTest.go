@@ -678,6 +678,12 @@ func test_api(w http.ResponseWriter, req *http.Request){
 	fmt.Println(":::form1:::",req.Form)
 	if data, err := json.Marshal(req.Form); err == nil {
 		fmt.Println(":::form:::",req.Form)
+
+		host:=req.PostFormValue("host")
+		url:=req.PostFormValue("url")
+		fmt.Println(":::host:::",host)
+		fmt.Println(":::url:::",url)
+
 		fmt.Fprint(w, string(data))
 	}
 	log.Printf("test_api handle end\n")
