@@ -80,7 +80,8 @@
     <div class="container">
         <div id="api-common-info" class="row">
             <div class="col-sm-2 col-sm-offset-2">API:<%=api_name%></div>
-<div class="col-sm-2">Host:<%=api_host%></div>
+            <div class="col-sm-2">Host:<%=api_host%></div>
+            <div id="api-item-info"></div>
 </div>
 <div class="row">
     <div class="col-sm-10 col-sm-offset-2"><%=api_description%></div>
@@ -94,8 +95,6 @@
 
     //提交表单
     function submitForm(id){
-    alert("submit:"+id);
-    alert($('#'+id).formSerialize());
         $('#'+id).ajaxSubmit();
        return false;
     }
@@ -146,7 +145,7 @@
             }
             $("#group-list").html(t_str);
             $('#api-info').html(baidu.template('api-info-tpl',apiList[id]));
-            $("#submit-common").html(baidu.template('field-tpl',{label:"Host",value:apiList[id]["api_host"],type:"text",method:undefined,methodName:undefined,des:undefined}));
+            $("#submit-common").html(baidu.template('field-tpl',{label:"Host",field:"host",value:apiList[id]["api_host"],type:"text",method:undefined,methodName:undefined,des:undefined}));
         }
         if(obj.attr('id') == 'group-list'){
             var api_id = $("#api-list").val();
@@ -165,14 +164,14 @@
             if(apiList[api_id]["group"][group_id]["items"][id] != undefined && apiList[api_id]["group"][group_id]["items"][id] !=""){
                 var item_data=apiList[api_id]["group"][group_id]["items"][id];
                 t_str = create_form(item_data);
-                $("#submit-api").html(baidu.template('field-tpl',{label:"Url",value:item_data["url"],type:"text",method:undefined,methodName:undefined,des:undefined}));
+                $("#submit-api").html(baidu.template('field-tpl',{label:"Url",field:"url",value:item_data["url"],type:"text",method:undefined,methodName:undefined,des:undefined}));
             }
 
             $("#submit-api").append(t_str);
 
             var info_tpl='<div class="col-sm-2">接口名称:<%=name%></div>'
                          +'<div class="col-sm-2">Url:<%=url%></div>';
-            $('#api-common-info').append(baidu.template(info_tpl,apiList[api_id]["group"][group_id]["items"][id]));
+            $('#api-item-info').html(baidu.template(info_tpl,apiList[api_id]["group"][group_id]["items"][id]));
         }
     }
     $(".change-api").change(function(){
