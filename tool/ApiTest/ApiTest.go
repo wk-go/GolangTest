@@ -37,6 +37,7 @@ var UrlRoute = map[string]http.HandlerFunc{
 	"/api_group":api_group,
 	"/api_item":api_item,
 	"/api_show":api_show,
+	"/test_api":test_api,
 }
 func main() {
 	//设置静态文件
@@ -670,3 +671,14 @@ func api_show(w http.ResponseWriter, req *http.Request){
 	}
 }
 //api_show end ------------------------------------------------------------------------
+//solve test form
+func test_api(w http.ResponseWriter, req *http.Request){
+	req.ParseForm()
+	log.Printf("test_api handle start\n")
+	fmt.Println(":::form1:::",req.Form)
+	if data, err := json.Marshal(req.Form); err == nil {
+		fmt.Println(":::form:::",req.Form)
+		fmt.Fprint(w, string(data))
+	}
+	log.Printf("test_api handle end\n")
+}
