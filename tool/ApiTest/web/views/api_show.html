@@ -49,15 +49,15 @@
 <script id="field-tpl" type="text/html">
 
     <div class="form-group">
-        <label for="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" class="col-sm-2 control-label"><%=label%><%if(methodName != undefined){%>(<%=methodName%>)<% }%></label>
+        <label for="<%if(method != ''){%><%=method%>:<% }%><%=field%>" class="col-sm-2 control-label"><%=label%><%if(methodName != ''){%>(<%=methodName%>)<% }%></label>
 
         <div class="col-sm-10">
     <% if(type=="textarea"){ %>
-                <textarea id="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" name="<%=method%>:<%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"><%=value%></textarea>
+                <textarea id="<%if(method != ''){%><%=method%>:<% }%><%=field%>" name="<%if(method != ''){%><%=method%>:<% }%><%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"><%=value%></textarea>
     <% }else if(type=="select" || type=="multiple-select"){
             value = value.split("|");
     %>
-            <select id="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" name="<%=method%>:<%=field%>" <%if(type=="multiple-select"){%>multiple="multiple"<% }%> class="form-control">
+            <select id="<%if(method != ''){%><%=method%>:<% }%><%=field%>" name="<%if(method != ''){%><%=method%>:<% }%><%=field%>" <%if(type=="multiple-select"){%>multiple="multiple"<% }%> class="form-control">
                 <option value="">请选择</option>
                 <% for(var i=0; i< value.length; i++){
                     var v = value[i].split(":");
@@ -69,10 +69,10 @@
                 } %>
             </select>
     <% } else {%>
-            <input id="<%if(method != undefined){%><%=method%>:<% }%><%=field%>" name="<%=method%>:<%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"
+            <input id="<%if(method != ''){%><%=method%>:<% }%><%=field%>" name="<%if(method != ''){%><%=method%>:<% }%><%=field%>" type="<%=type%>" class="form-control" placeholder="<%=label%>"
                    value="<%=value%>">
     <% } %>
-            <%if(des != undefined){%><span id="helpBlock" class="help-block"><%=des%></span><% }%>
+            <%if(des != ''){%><span id="helpBlock" class="help-block"><%=des%></span><% }%>
         </div>
     </div>
 </script>
@@ -145,7 +145,7 @@
             }
             $("#group-list").html(t_str);
             $('#api-info').html(baidu.template('api-info-tpl',apiList[id]));
-            $("#submit-common").html(baidu.template('field-tpl',{label:"Host",field:"host",value:apiList[id]["api_host"],type:"text",method:undefined,methodName:undefined,des:undefined}));
+            $("#submit-common").html(baidu.template('field-tpl',{label:"Host",field:"host",value:apiList[id]["api_host"],type:"text",method:'',methodName:'',des:''}));
         }
         if(obj.attr('id') == 'group-list'){
             var api_id = $("#api-list").val();
@@ -164,7 +164,7 @@
             if(apiList[api_id]["group"][group_id]["items"][id] != undefined && apiList[api_id]["group"][group_id]["items"][id] !=""){
                 var item_data=apiList[api_id]["group"][group_id]["items"][id];
                 t_str = create_form(item_data);
-                $("#submit-api").html(baidu.template('field-tpl',{label:"Url",field:"url",value:item_data["url"],type:"text",method:undefined,methodName:undefined,des:undefined}));
+                $("#submit-api").html(baidu.template('field-tpl',{label:"Url",field:"url",value:item_data["url"],type:"text",method:'',methodName:'',des:''}));
             }
 
             $("#submit-api").append(t_str);
