@@ -686,6 +686,22 @@ func test_api(w http.ResponseWriter, req *http.Request){
 		fmt.Println(":::host:::",host)
 		fmt.Println(":::url:::",url)
 
+		//solve post and get parameters
+		postParam,getParam := make(map[string]string),make(map[string]string)
+		for key,_ := range req.Form{
+			keySplit := strings.Split(key,":")
+			fmt.Println(":::keySplit param:::",keySplit)
+			if len(keySplit) >= 2{
+				if keySplit[0] == "post"{
+					postParam[keySplit[1]] = req.PostFormValue(key)
+				}else{
+					getParam[keySplit[1]] = req.PostFormValue(key)
+				}
+			}
+		}
+		fmt.Println(":::post param:::",postParam)
+		fmt.Println(":::get param:::",getParam)
+
 		fmt.Fprint(w, string(data))
 	}
 	log.Printf("test_api handle end\n")
