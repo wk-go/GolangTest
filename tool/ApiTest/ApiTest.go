@@ -13,6 +13,8 @@ import (
 	"strings"
 	"strconv"
 	"path/filepath"
+	"mime/multipart"
+	"bytes"
 )
 //app配置
 var AppInfo = map[string]string{
@@ -703,14 +705,45 @@ func test_api(w http.ResponseWriter, req *http.Request){
 				}
 			}
 		}
+		finalURL := fmt.Sprintf("http://%v%v", targetHOST, targetURL)
+		if len(getParam) > 0 {
+			finalURL = fmt.Sprintf("http://%v?%v", finalURL, getParam.Encode())
+		}
 
 		fmt.Println(":::get param:::",getParam.Encode())
 		if len(postParam) > 0 {
-			fmt.Println(":::url:::",fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode()))
-			//http.Post(fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode()))
-			fmt.Println(":::post param:::",postParam.Encode())
+			fmt.Println(":::url:::",finalURL)
+			/*file, err := os.Open(path)
+			if err != nil {
+				return nil, err
+			}
+			defer file.Close()*/
+
+			body := &bytes.Buffer{}
+			writer := multipart.NewWriter(body)
+			/*part, err := writer.CreateFormFile(paramName, path)
+			if err != nil {
+				return nil, err
+			}
+			_, err = io.Copy(part, file)*/
+
+			for key, _ := range postParam {
+				_ = writer.WriteField(key, postParam.Get(key))
+			}
+			err = writer.Close()
+			if err != nil {
+				return
+			}
+			request, err := http.NewRequest("POST", finalURL, body)
+			request.Header.Set("Content-Type", writer.FormDataContentType())
+			if err==nil {
+				resp, err := http.DefaultClient.Do(request)
+				if err != nil {
+					fmt.Println(resp)
+				}
+			}
 		}else{
-			fmt.Println(":::post param:::",getParam.Encode())
+			http.Get(finalURL)
 		}
 		fmt.Fprint(w, string(data))
 	}
