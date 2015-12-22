@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"log"
 	"io/ioutil"
 	"html/template"
@@ -681,27 +682,32 @@ func test_api(w http.ResponseWriter, req *http.Request){
 
 
 		fmt.Println(":::form1:::",req.PostFormValue)
-		host:=req.PostFormValue("host")
-		url:=req.PostFormValue("url")
-		fmt.Println(":::host:::",host)
-		fmt.Println(":::url:::",url)
+		targetHOST :=req.PostFormValue("host")
+		targetURL :=req.PostFormValue("url")
+		fmt.Println(":::host:::", targetHOST)
+		fmt.Println(":::url:::", targetURL)
 
 		//solve post and get parameters
-		postParam,getParam := make(map[string]string),make(map[string]string)
+		postParam,getParam := url.Values{},url.Values{}
 		for key,_ := range req.Form{
 			keySplit := strings.Split(key,":")
 			fmt.Println(":::keySplit param:::",keySplit)
-			if len(keySplit) >= 2{
+			if len(keySplit) >= 2 && keySplit[1] != ""{
 				if keySplit[0] == "post"{
-					postParam[keySplit[1]] = req.PostFormValue(key)
+					postParam.Add(keySplit[1],req.PostFormValue(key))
 				}else{
-					getParam[keySplit[1]] = req.PostFormValue(key)
+					getParam.Add(keySplit[1],req.PostFormValue(key))
 				}
 			}
 		}
-		fmt.Println(":::post param:::",postParam)
-		fmt.Println(":::get param:::",getParam)
 
+		fmt.Println(":::get param:::",getParam.Encode())
+		if len(postParam) > 0 {
+			//http.Post(fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode()))
+			fmt.Println(":::post param:::",postParam.Encode())
+		}else{
+			fmt.Println(":::post param:::",getParam.Encode())
+		}
 		fmt.Fprint(w, string(data))
 	}
 	log.Printf("test_api handle end\n")
