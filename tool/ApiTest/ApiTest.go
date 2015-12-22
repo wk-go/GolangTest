@@ -686,6 +686,9 @@ func test_api(w http.ResponseWriter, req *http.Request){
 		targetURL :=req.PostFormValue("url")
 		fmt.Println(":::host:::", targetHOST)
 		fmt.Println(":::url:::", targetURL)
+		if targetURL[0:1] != "/"{
+			targetURL = strings.Join([]string{"/",targetURL},"")
+		}
 
 		//solve post and get parameters
 		postParam,getParam := url.Values{},url.Values{}
@@ -703,6 +706,7 @@ func test_api(w http.ResponseWriter, req *http.Request){
 
 		fmt.Println(":::get param:::",getParam.Encode())
 		if len(postParam) > 0 {
+			fmt.Println(":::url:::",fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode()))
 			//http.Post(fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode()))
 			fmt.Println(":::post param:::",postParam.Encode())
 		}else{
