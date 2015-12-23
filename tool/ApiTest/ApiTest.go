@@ -710,7 +710,8 @@ func test_api(w http.ResponseWriter, req *http.Request){
 			finalURL = fmt.Sprintf("http://%v?%v", finalURL, getParam.Encode())
 		}
 
-		fmt.Println(":::get param:::",getParam.Encode())
+		var resp *http.Response
+		var respErr error
 		if len(postParam) > 0 {
 			fmt.Println(":::url:::",finalURL)
 			/*file, err := os.Open(path)
@@ -737,34 +738,32 @@ func test_api(w http.ResponseWriter, req *http.Request){
 			request, err := http.NewRequest("POST", finalURL, body)
 			request.Header.Set("Content-Type", writer.FormDataContentType())
 			if err==nil {
-				resp, err := http.DefaultClient.Do(request)
-				if err != nil {
-					fmt.Println(resp)
-				}
+				resp,respErr = http.DefaultClient.Do(request)
 			}
 		}else{
-			tUrl := fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode());
-			resp,err := http.Get(tUrl)
-			if err != nil{
-				log.Printf("test_api error:%v http.Get(%v)\n",err,tUrl)
-			}else{
-				fmt.Println(":::resp:::",resp)
-				defer resp.Body.Close()
-				body,err := ioutil.ReadAll(resp.Body)
-				if err==nil{
-					fmt.Println(":::body:::",string(body))
-					apiResp := make(map[string]interface{})
+			resp,respErr = http.Get(finalURL)
 
-					apiResp["Status"]=resp.Status
-					apiResp["StatusCode"]=resp.StatusCode
-					apiResp["Proto"]=resp.Proto
-					apiResp["Header"]=resp.Header
-					apiResp["Body"]=string(body)
-					apiResp["ContentLength"] = resp.ContentLength
-					//fmt.Fprint(w,string(body))
-					if respData, err := json.Marshal(apiResp); err == nil{
-						fmt.Fprint(w,string(respData))
-					}
+		}
+
+		if respErr != nil{
+			log.Printf("test_api error:%v http.Get(%v)\n",respErr,finalURL)
+		}else{
+			fmt.Println(":::resp:::",resp)
+			defer resp.Body.Close()
+			body,err := ioutil.ReadAll(resp.Body)
+			if err==nil{
+				fmt.Println(":::body:::",string(body))
+				apiResp := make(map[string]interface{})
+
+				apiResp["Status"]=resp.Status
+				apiResp["StatusCode"]=resp.StatusCode
+				apiResp["Proto"]=resp.Proto
+				apiResp["Header"]=resp.Header
+				apiResp["Body"]=string(body)
+				apiResp["ContentLength"] = resp.ContentLength
+				//fmt.Fprint(w,string(body))
+				if respData, err := json.Marshal(apiResp); err == nil{
+					fmt.Fprint(w,string(respData))
 				}
 			}
 		}
