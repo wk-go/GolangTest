@@ -39,7 +39,7 @@
         </div>
     </form>
 </div>
-<div class=""></div>
+<div id="respData"></div>
 <style type="text/css">
     .field-config input,.field-config select{
     display:inline-block;
@@ -88,6 +88,18 @@
 </div>
 </div>
 </script>
+<script id="respData-tpl" type="text/html">
+    <div class="container">
+        <div id="body" class="row"><div class="col-sm-2">响应内容:</div><div class="col-sm-10"><%=Body%></div></div>
+    </div>
+    <div id="header" class="container">
+        <div class="col-sm-2">响应头:</div><div class="col-sm-10">
+        <% $.each(Header,function(k,v){ %>
+        <div class="row"><div class="col-sm-2"><%=k%>:</div><div class="col-sm-8"><%=v[0]%></div></div>
+        <% }); %>
+    </div>
+    </div>
+</script>
 
 <script type="text/javascript">
     var apiList = {{.apiListJson}};
@@ -95,7 +107,23 @@
 
     //提交表单
     function submitForm(id){
-        $('#'+id).ajaxSubmit();
+        $('#'+id).ajaxSubmit({
+        success:       function(respData, statusText, xhr, $form){
+            alert('status: ' + statusText + '\n\nresponseText: \n' + respData +
+        '\n\nThe output div should have already been updated with the responseText.');
+            $('#respData').html(baidu.template('respData-tpl',respData));
+        },
+
+        // other available options:
+        //url:       url         // override for form's 'action' attribute
+        //type:      type        // 'get' or 'post', override for form's 'method' attribute
+        dataType:  "json"        // 'xml', 'script', or 'json' (expected server response type)
+        //clearForm: true        // clear all form fields after successful submit
+        //resetForm: true        // reset the form after successful submit
+
+        // $.ajax options can be used here too, for example:
+        //timeout:   3000
+    });
        return false;
     }
 

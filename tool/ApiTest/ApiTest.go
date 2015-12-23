@@ -706,9 +706,32 @@ func test_api(w http.ResponseWriter, req *http.Request){
 			//http.Post(fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode()))
 			fmt.Println(":::post param:::",postParam.Encode())
 		}else{
-			fmt.Println(":::post param:::",getParam.Encode())
+			tUrl := fmt.Sprintf("http://%v%v?%v",targetHOST,targetURL,getParam.Encode());
+			resp,err := http.Get(tUrl)
+			if err != nil{
+				log.Printf("test_api error:%v http.Get(%v)\n",err,tUrl)
+			}else{
+				fmt.Println(":::resp:::",resp)
+				defer resp.Body.Close()
+				body,err := ioutil.ReadAll(resp.Body)
+				if err==nil{
+					fmt.Println(":::body:::",string(body))
+					apiResp := make(map[string]interface{})
+
+					apiResp["Status"]=resp.Status
+					apiResp["StatusCode"]=resp.StatusCode
+					apiResp["Proto"]=resp.Proto
+					apiResp["Header"]=resp.Header
+					apiResp["Body"]=string(body)
+					apiResp["ContentLength"] = resp.ContentLength
+					//fmt.Fprint(w,string(body))
+					if respData, err := json.Marshal(apiResp); err == nil{
+						fmt.Fprint(w,string(respData))
+					}
+				}
+			}
 		}
-		fmt.Fprint(w, string(data))
+		fmt.Println(string(data))
 	}
 	log.Printf("test_api handle end\n")
 }
