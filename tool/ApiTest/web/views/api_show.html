@@ -109,8 +109,7 @@
     function submitForm(id){
         $('#'+id).ajaxSubmit({
         success:       function(respData, statusText, xhr, $form){
-            alert('status: ' + statusText + '\n\nresponseText: \n' + respData +
-        '\n\nThe output div should have already been updated with the responseText.');
+            //alert('status: ' + statusText + '\n\nresponseText: \n' + respData + '\n\nThe output div should have already been updated with the responseText.');
             $('#respData').html(baidu.template('respData-tpl',respData));
         },
 

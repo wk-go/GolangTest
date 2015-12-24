@@ -437,38 +437,39 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 	log.Printf("api_group handle end\n")
 }
 //api_item start ------------------------------------------------------------------------
-type TplWriter struct{
+type TplWriter struct {
 	content []byte
 }
-func (t *TplWriter)Write(b []byte)(n int, err error){
-	if t.content ==nil{
-		t.content = make([]byte,len(b))
+func (t *TplWriter)Write(b []byte) (n int, err error) {
+	if t.content == nil {
+		t.content = make([]byte, len(b))
 	}
-	for i:=0; i<len(b);i++{
-		t.content = append(t.content,b[i])
+	for i := 0; i < len(b); i++ {
+		t.content = append(t.content, b[i])
 	}
-	return len(b),nil
+	return len(b), nil
 }
-func (t *TplWriter)ReadContent()(cnt string, n int){
-	if len(t.content) <=0{
+func (t *TplWriter)ReadContent() (cnt string, n int) {
+	if len(t.content) <= 0 {
 		return "", 0
 	}
 	cnt = string(t.content)
-	t.content = make([]byte,0)
-	return cnt,len(cnt)
+	t.content = make([]byte, 0)
+	return cnt, len(cnt)
 }
-func _item_field(data map[string][]string) (post template.HTML, get template.HTML,postLen int, getLen int){
-	valTpl :=`<div class="form-group field-config">
+func _item_field(data map[string][]string) (post template.HTML, get template.HTML, postLen int, getLen int) {
+	valTpl := `<div class="form-group field-config">
                 <label class="col-sm-2 control-label">{{.methodName}}参数</label>
                 <div class="col-sm-10">
                     <input name="{{.method}}[{{.idx}}][label]" value="{{.label}}" placeholder="标签" class="form-control col-sm-2">
                     <input name="{{.method}}[{{.idx}}][field]" value="{{.field}}" placeholder="字段" class="form-control col-sm-2">
                     <select name="{{.method}}[{{.idx}}][type]" class="form-control col-sm-2">
                         <option value="text"{{ if eq .type "text"}} selected{{end}}>text</option>
+                        <option value="password"{{ if eq .type "password"}} selected{{end}}>password</option>
                         <option value="textarea"{{if eq .type "textarea"}} selected{{end}}>textarea</option>
                         <option value="select"{{if eq .type "select"}} selected{{end}}>select</option>
-                        <option value="checkbox"{{if eq .type "checkbox"}} selected{{end}}>checkbox</option>
-                        <option value="radio"{{if eq .type "radio"}} selected{{end}}>radio</option>
+                        <!--<option value="checkbox"{{if eq .type "checkbox"}} selected{{end}}>checkbox</option>
+                        <option value="radio"{{if eq .type "radio"}} selected{{end}}>radio</option>-->
                         <option value="file"{{if eq .type "file"}} selected{{end}}>file</option>
                     </select>
                     <input name="{{.method}}[{{.idx}}][value]" value="{{.value}}" placeholder="目标值" class="form-control col-sm-2">
@@ -485,24 +486,24 @@ func _item_field(data map[string][]string) (post template.HTML, get template.HTM
 	}
 	tplWriter := new(TplWriter)
 
-	for method,_ := range field {
+	for method, _ := range field {
 		var tmp = make(map[string]string)
 		tmp["method"] = method
 		tmp["methodName"] = strings.ToUpper(method)
 		for i := 0; true; i++ {
-			fieldLen[method]=i
+			fieldLen[method] = i
 			tmp["idx"] = strconv.Itoa(i)
-			if _, ok := data[fmt.Sprintf("%v[%v][field]", method,i)]; ok {
-				tmp["label"] = data[fmt.Sprintf("%v[%v][label]", method,i)][0]
-				tmp["field"] = data[fmt.Sprintf("%v[%v][field]", method,i)][0]
-				tmp["type"] = data[fmt.Sprintf("%v[%v][type]", method,i)][0]
-				tmp["value"] = data[fmt.Sprintf("%v[%v][value]", method,i)][0]
-				tmp["des"] = data[fmt.Sprintf("%v[%v][des]", method,i)][0]
+			if _, ok := data[fmt.Sprintf("%v[%v][field]", method, i)]; ok {
+				tmp["label"] = data[fmt.Sprintf("%v[%v][label]", method, i)][0]
+				tmp["field"] = data[fmt.Sprintf("%v[%v][field]", method, i)][0]
+				tmp["type"] = data[fmt.Sprintf("%v[%v][type]", method, i)][0]
+				tmp["value"] = data[fmt.Sprintf("%v[%v][value]", method, i)][0]
+				tmp["des"] = data[fmt.Sprintf("%v[%v][des]", method, i)][0]
 				tmpl, err := template.New("val").Parse(valTpl)
 				if err != nil { panic(err) }
 				err = tmpl.Execute(tplWriter, tmp)
 				if err != nil { panic(err) }
-				if tplStr,l := tplWriter.ReadContent();l>0 {
+				if tplStr, l := tplWriter.ReadContent(); l > 0 {
 					field[method] = strings.Join([]string{field[method], tplStr}, "")
 				}
 			}else {
@@ -510,7 +511,7 @@ func _item_field(data map[string][]string) (post template.HTML, get template.HTM
 			}
 		}
 	}
-	return template.HTML(field["post"]), template.HTML(field["get"]),fieldLen["post"], fieldLen["get"]
+	return template.HTML(field["post"]), template.HTML(field["get"]), fieldLen["post"], fieldLen["get"]
 }
 
 //添加配置项
@@ -570,14 +571,14 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 										"postField":"post",
 									}
 									for key, val := range itemMap {
-										if _,ok := methodMap[key];ok {
+										if _, ok := methodMap[key]; ok {
 											field, _ := val.([]interface{})
 											for k, _ := range field {
-												field_map,_ := field[k].(map[string]interface{})
-												for k_field,v := range field_map{
-													if str,ok := v.(string); ok {
+												field_map, _ := field[k].(map[string]interface{})
+												for k_field, v := range field_map {
+													if str, ok := v.(string); ok {
 														req.PostForm[fmt.Sprintf("%v[%v][%v]", methodMap[key], k, k_field)] = []string{str}
-													}else{
+													}else {
 														req.PostForm[fmt.Sprintf("%v[%v][%v]", methodMap[key], k, k_field)] = []string{""}
 													}
 												}
@@ -597,13 +598,13 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 					edit = true
 				}
 			}else {
-				http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v&group=%v", req.FormValue("api"),req.FormValue("group")), 302);
+				http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v&group=%v", req.FormValue("api"), req.FormValue("group")), 302);
 			}
 		}
 	} else {
 		//http.Redirect(w, req, "/", 302)
 	}
-	postItem, getItem,postLen,getLen := _item_field(req.PostForm)
+	postItem, getItem, postLen, getLen := _item_field(req.PostForm)
 	//fmt.Printf(postItem, getItem)
 	log.Println("req.PostForm:", req.PostForm)
 	log.Printf("api_item render\n")
@@ -621,43 +622,43 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 //api_item end ------------------------------------------------------------------------
 //api_show start ------------------------------------------------------------------------
 //显示接口信息
-func api_show(w http.ResponseWriter, req *http.Request){
+func api_show(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	log.Printf("api_item handle start\n")
 	fmt.Println(":::req.From:::", req.Form)
-	if act := req.FormValue("act"); act=="" {
+	if act := req.FormValue("act"); act == "" {
 		data := make(map[string]interface{})
-		api_setting,_ := Config["api"].(map[string]string)
-		fmt.Println(":::api_setting:::",api_setting)
+		api_setting, _ := Config["api"].(map[string]string)
+		fmt.Println(":::api_setting:::", api_setting)
 		apiConf := new(ApiConfig)
 		apiMap := make(map[string]interface{})
-		if files,err := filepath.Glob(fmt.Sprintf("%v/*.json",api_setting["path"])); err == nil {
+		if files, err := filepath.Glob(fmt.Sprintf("%v/*.json", api_setting["path"])); err == nil {
 			fmt.Println(":::files:::", files)
-			for _,filename := range files {
+			for _, filename := range files {
 				fmt.Println(":::file:::", filename)
-				apiId := filename[strings.LastIndex(filename,string(filepath.Separator))+1:strings.LastIndex(filename,".json")]
+				apiId := filename[strings.LastIndex(filename, string(filepath.Separator)) + 1:strings.LastIndex(filename, ".json")]
 				fmt.Println(":::api_id:::", apiId)
 				apiInfo := make(map[string]interface{})
-				if conf,err := apiConf.ReadApiConf(apiId); err ==nil{
-					for _,key := range []string{"api_id","api_name","api_host","api_description"} {
+				if conf, err := apiConf.ReadApiConf(apiId); err == nil {
+					for _, key := range []string{"api_id", "api_name", "api_host", "api_description"} {
 						apiInfo[key] = conf[key]
 					}
-				}else{
-					log.Println("api_show:",err)
+				}else {
+					log.Println("api_show:", err)
 				}
 
 				apiMap[apiId] = apiInfo
 			}
-		}else{
+		}else {
 			log.Println(err)
 		}
 		data["apiList"] = apiMap
 		if apiListJson, err := json.Marshal(apiMap); err == nil {
 			data["apiListJson"] = template.JS(string(apiListJson))
 		}
-		RenderView(w,"api_show",data)
-	}else{
-		if act=="get_group"{
+		RenderView(w, "api_show", data)
+	}else {
+		if act == "get_group" {
 			apiConf := new(ApiConfig)
 			if apiId := req.Form.Get("api_id"); apiId != "" {
 				if conf, err := apiConf.ReadApiConf(apiId); err == nil {
@@ -667,7 +668,7 @@ func api_show(w http.ResponseWriter, req *http.Request){
 				}else {
 					log.Println("api_show:", err)
 				}
-			}else{
+			}else {
 
 			}
 		}
@@ -675,98 +676,98 @@ func api_show(w http.ResponseWriter, req *http.Request){
 }
 //api_show end ------------------------------------------------------------------------
 //solve test form
-func test_api(w http.ResponseWriter, req *http.Request){
+func test_api(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	log.Printf("test_api handle start\n")
-	fmt.Println(":::form1:::",req.Form)
+	fmt.Println(":::form1:::", req.Form)
+
+
+	fmt.Println(":::form1:::", req.PostFormValue)
+	targetHOST := req.PostFormValue("host")
+	targetURL := req.PostFormValue("url")
+	fmt.Println(":::host:::", targetHOST)
+	fmt.Println(":::url:::", targetURL)
+	if targetURL[0:1] != "/" {
+		targetURL = strings.Join([]string{"/", targetURL}, "")
+	}
+
+	//solve post and get parameters
+	postParam, getParam := url.Values{}, url.Values{}
+	for key, _ := range req.Form {
+		keySplit := strings.Split(key, ":")
+		fmt.Println(":::keySplit param:::", keySplit)
+		if len(keySplit) >= 2 && keySplit[1] != "" {
+			if keySplit[0] == "post" {
+				postParam.Add(keySplit[1], req.PostFormValue(key))
+			}else {
+				getParam.Add(keySplit[1], req.PostFormValue(key))
+			}
+		}
+	}
+	finalURL := fmt.Sprintf("http://%v%v", targetHOST, targetURL)
+	if len(getParam) > 0 {
+		finalURL = fmt.Sprintf("http://%v?%v", finalURL, getParam.Encode())
+	}
+
+	var resp *http.Response
+	var respErr error
+	if len(postParam) > 0 {
+		fmt.Println(":::url:::", finalURL)
+		/*file, err := os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()*/
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		/*part, err := writer.CreateFormFile(paramName, path)
+		if err != nil {
+			return nil, err
+		}
+		_, err = io.Copy(part, file)*/
+
+		for key, _ := range postParam {
+			_ = writer.WriteField(key, postParam.Get(key))
+		}
+		err := writer.Close()
+		if err != nil {
+			return
+		}
+		request, err := http.NewRequest("POST", finalURL, body)
+		request.Header.Set("Content-Type", writer.FormDataContentType())
+		if err == nil {
+			resp, respErr = http.DefaultClient.Do(request)
+		}
+	}else {
+		resp, respErr = http.Get(finalURL)
+
+	}
+
+	if respErr != nil {
+		log.Printf("test_api error:%v http.Get(%v)\n", respErr, finalURL)
+	}else {
+		fmt.Println(":::resp:::", resp)
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err == nil {
+			fmt.Println(":::body:::", string(body))
+			apiResp := make(map[string]interface{})
+
+			apiResp["Status"] = resp.Status
+			apiResp["StatusCode"] = resp.StatusCode
+			apiResp["Proto"] = resp.Proto
+			apiResp["Header"] = resp.Header
+			apiResp["Body"] = string(body)
+			apiResp["ContentLength"] = resp.ContentLength
+			//fmt.Fprint(w,string(body))
+			if respData, err := json.Marshal(apiResp); err == nil {
+				fmt.Fprint(w, string(respData))
+			}
+		}
+	}
+
 	if data, err := json.Marshal(req.Form); err == nil {
-		fmt.Println(":::form:::",req.Form)
-
-
-		fmt.Println(":::form1:::",req.PostFormValue)
-		targetHOST :=req.PostFormValue("host")
-		targetURL :=req.PostFormValue("url")
-		fmt.Println(":::host:::", targetHOST)
-		fmt.Println(":::url:::", targetURL)
-		if targetURL[0:1] != "/"{
-			targetURL = strings.Join([]string{"/",targetURL},"")
-		}
-
-		//solve post and get parameters
-		postParam,getParam := url.Values{},url.Values{}
-		for key,_ := range req.Form{
-			keySplit := strings.Split(key,":")
-			fmt.Println(":::keySplit param:::",keySplit)
-			if len(keySplit) >= 2 && keySplit[1] != ""{
-				if keySplit[0] == "post"{
-					postParam.Add(keySplit[1],req.PostFormValue(key))
-				}else{
-					getParam.Add(keySplit[1],req.PostFormValue(key))
-				}
-			}
-		}
-		finalURL := fmt.Sprintf("http://%v%v", targetHOST, targetURL)
-		if len(getParam) > 0 {
-			finalURL = fmt.Sprintf("http://%v?%v", finalURL, getParam.Encode())
-		}
-
-		var resp *http.Response
-		var respErr error
-		if len(postParam) > 0 {
-			fmt.Println(":::url:::",finalURL)
-			/*file, err := os.Open(path)
-			if err != nil {
-				return nil, err
-			}
-			defer file.Close()*/
-
-			body := &bytes.Buffer{}
-			writer := multipart.NewWriter(body)
-			/*part, err := writer.CreateFormFile(paramName, path)
-			if err != nil {
-				return nil, err
-			}
-			_, err = io.Copy(part, file)*/
-
-			for key, _ := range postParam {
-				_ = writer.WriteField(key, postParam.Get(key))
-			}
-			err = writer.Close()
-			if err != nil {
-				return
-			}
-			request, err := http.NewRequest("POST", finalURL, body)
-			request.Header.Set("Content-Type", writer.FormDataContentType())
-			if err==nil {
-				resp,respErr = http.DefaultClient.Do(request)
-			}
-		}else{
-			resp,respErr = http.Get(finalURL)
-
-		}
-
-		if respErr != nil{
-			log.Printf("test_api error:%v http.Get(%v)\n",respErr,finalURL)
-		}else{
-			fmt.Println(":::resp:::",resp)
-			defer resp.Body.Close()
-			body,err := ioutil.ReadAll(resp.Body)
-			if err==nil{
-				fmt.Println(":::body:::",string(body))
-				apiResp := make(map[string]interface{})
-
-				apiResp["Status"]=resp.Status
-				apiResp["StatusCode"]=resp.StatusCode
-				apiResp["Proto"]=resp.Proto
-				apiResp["Header"]=resp.Header
-				apiResp["Body"]=string(body)
-				apiResp["ContentLength"] = resp.ContentLength
-				//fmt.Fprint(w,string(body))
-				if respData, err := json.Marshal(apiResp); err == nil{
-					fmt.Fprint(w,string(respData))
-				}
-			}
-		}
 		fmt.Println(string(data))
 	}
 	log.Printf("test_api handle end\n")
