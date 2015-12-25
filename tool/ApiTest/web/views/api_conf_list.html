@@ -1,0 +1,12 @@
+{{.header}}
+<div class="container">
+    {{range .apiMap}}
+    <div class="row">
+        <div class="col-sm-2"><a href="/api_group?api={{.api_id}}">{{.api_name}}</a></div>
+        <div class="col-sm-2"></div>
+        <div class="col-sm-2"><a href="/api_conf?act=edit&api={{.api_id}}">编辑</a></div>
+    </div>
+    {{end}}
+</div>
+<div class=""></div>
+{{.footer}}

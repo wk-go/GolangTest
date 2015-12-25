@@ -237,16 +237,17 @@ func (c *ApiConfig)SaveItem(data map[string][]string) {
 			itemId = strings.Replace(str, "/", "_", -1);
 		}
 		itemMap["dataType"] = t_data["item_dataType"]
-		methodType := map[string]interface{}{
+		methodType := map[string][]interface{}{
 			"get":make([]interface{}, 0, 40),
 			"post":make([]interface{}, 0, 40),
 		}
+		//solve post and get params
 		for method,_ := range methodType {
 			for i := 0; true; i++ {
 				var tmp = make(map[string]interface{})
 				if _, ok := t_data[fmt.Sprintf("%v[%v][field]",method, i)]; ok {
 					for _,sub_field := range []string{"label","field","type","value","des"} {
-						tmp["label"] = t_data[fmt.Sprintf("%v[%v][%v]", method, i,sub_field)]
+						tmp[sub_field] = t_data[fmt.Sprintf("%v[%v][%v]", method, i,sub_field)]
 					}
 					methodType[method] = append(methodType[method], tmp)
 				}else {
@@ -332,19 +333,22 @@ func index(w http.ResponseWriter, req *http.Request) {
 //添加新配置
 func api_conf(w http.ResponseWriter, req *http.Request) {
 	edit := false
-	req.ParseForm()
 	log.Printf("api_conf handle start\n")
-	if act, ok := req.Form["act"]; ok {
+	req.ParseForm()
+	fmt.Println(":::form:::",req.Form)
+	act :=req.FormValue("act")
+	fmt.Println(":::act:::",act)
+	if act != "" {
 		conf := &ApiConfig{}
 
 		if len(req.PostForm) > 0 {
-			if _, err := conf.ReadApiConf(req.FormValue("api_id")); act[0] == "add" && err == nil {
+			if _, err := conf.ReadApiConf(req.FormValue("api_id")); act == "add" && err == nil {
 				http.Redirect(w, req, fmt.Sprintf("/api_conf?act=edit&api=%v", req.FormValue("api_id")), 302);
 			}
 			conf.SaveConfig(req.PostForm)
 			http.Redirect(w, req, fmt.Sprintf("/api_conf?act=edit&api=%v", req.FormValue("api_id")), 302);
 		}
-		if act[0] == "edit" && req.FormValue("api") != "" && len(req.PostForm) <= 0 {
+		if act == "edit" && req.FormValue("api") != "" && len(req.PostForm) <= 0 {
 			conf_data, err := conf.ReadApiConf(req.FormValue("api"))
 			if err == nil {
 				for _, key := range []string{"api_host", "api_description", "api_id", "api_name"} {
@@ -354,12 +358,39 @@ func api_conf(w http.ResponseWriter, req *http.Request) {
 			}
 			edit = true
 		}
-	} else {
-		http.Redirect(w, req, "/api_conf?act=add", 301)
+
+		log.Printf("api_conf render\n")
+		RenderView(w, "api_conf_add", map[string]interface{}{"req":req, "edit":edit})
+	} else {//没有参数显示列表
+		log.Println("api_conf show list")
+		api_setting, _ := Config["api"].(map[string]string)
+		fmt.Println(":::api_setting:::", api_setting)
+		apiConf := new(ApiConfig)
+		apiMap := make(map[string]interface{})
+		if files, err := filepath.Glob(fmt.Sprintf("%v/*.json", api_setting["path"])); err == nil {
+			fmt.Println(":::files:::", files)
+			for _, filename := range files {
+				fmt.Println(":::file:::", filename)
+				apiId := filename[strings.LastIndex(filename, string(filepath.Separator)) + 1:strings.LastIndex(filename, ".json")]
+				fmt.Println(":::api_id:::", apiId)
+				apiInfo := make(map[string]interface{})
+				if conf, err := apiConf.ReadApiConf(apiId); err == nil {
+					for _, key := range []string{"api_id", "api_name", "api_host", "api_description"} {
+						apiInfo[key] = conf[key]
+					}
+				}else {
+					log.Println("api_show:", err)
+				}
+				apiMap[apiId] = apiInfo
+			}
+		}else {
+			log.Println(err)
+		}
+
+		log.Printf("api_conf render\n")
+		RenderView(w, "api_conf_list", map[string]interface{}{"req":req, "apiMap":apiMap})
 	}
 	log.Println(req.PostForm)
-	log.Printf("api_conf render\n")
-	RenderView(w, "add", map[string]interface{}{"req":req, "edit":edit})
 	log.Printf("api_conf handle end\n")
 }
 
@@ -484,8 +515,9 @@ func _item_field(data map[string][]string) (post template.HTML, get template.HTM
 			tmp["idx"] = strconv.Itoa(i)
 			if _, ok := data[fmt.Sprintf("%v[%v][field]", method, i)]; ok {
 				for _,sub_field := range []string{"label","field","type","value","des"} {
-					tmp["label"] = data[fmt.Sprintf("%v[%v][%v]", method, i,sub_field)][0]
+					tmp[sub_field] = data[fmt.Sprintf("%v[%v][%v]", method, i,sub_field)][0]
 				}
+				fmt.Println(":::tmp:::",tmp)
 				tmpl, err := template.New("val").Parse(valTpl)
 				if err != nil { panic(err) }
 				err = tmpl.Execute(tplWriter, tmp)
