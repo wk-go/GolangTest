@@ -237,35 +237,24 @@ func (c *ApiConfig)SaveItem(data map[string][]string) {
 			itemId = strings.Replace(str, "/", "_", -1);
 		}
 		itemMap["dataType"] = t_data["item_dataType"]
-		var getField, postField []interface{} = make([]interface{}, 0, 40), make([]interface{}, 0, 40)
-		for i := 0; true; i++ {
-			var tmp = make(map[string]interface{})
-			if _, ok := t_data[fmt.Sprintf("get[%v][field]", i)]; ok {
-				tmp["label"] = t_data[fmt.Sprintf("get[%v][label]", i)]
-				tmp["field"] = t_data[fmt.Sprintf("get[%v][field]", i)]
-				tmp["type"] = t_data[fmt.Sprintf("get[%v][type]", i)]
-				tmp["value"] = t_data[fmt.Sprintf("get[%v][value]", i)]
-				tmp["des"] = t_data[fmt.Sprintf("get[%v][des]", i)]
-				getField = append(getField, tmp)
-			}else {
-				break
-			}
+		methodType := map[string]interface{}{
+			"get":make([]interface{}, 0, 40),
+			"post":make([]interface{}, 0, 40),
 		}
-		for i := 0; true; i++ {
-			var tmp = make(map[string]interface{})
-			if _, ok := t_data[fmt.Sprintf("post[%v][field]", i)]; ok {
-				tmp["label"] = t_data[fmt.Sprintf("post[%v][label]", i)]
-				tmp["field"] = t_data[fmt.Sprintf("post[%v][field]", i)]
-				tmp["type"] = t_data[fmt.Sprintf("post[%v][type]", i)]
-				tmp["value"] = t_data[fmt.Sprintf("post[%v][value]", i)]
-				tmp["des"] = t_data[fmt.Sprintf("post[%v][des]", i)]
-				postField = append(postField, tmp)
-			}else {
-				break
+		for method,_ := range methodType {
+			for i := 0; true; i++ {
+				var tmp = make(map[string]interface{})
+				if _, ok := t_data[fmt.Sprintf("%v[%v][field]",method, i)]; ok {
+					for _,sub_field := range []string{"label","field","type","value","des"} {
+						tmp["label"] = t_data[fmt.Sprintf("%v[%v][%v]", method, i,sub_field)]
+					}
+					methodType[method] = append(methodType[method], tmp)
+				}else {
+					break
+				}
 			}
+			itemMap[fmt.Sprintf("%vField",method)] = methodType[method];
 		}
-		itemMap["getField"] = getField;
-		itemMap["postField"] = postField;
 
 		if _, ok := groupMap["items"]; !ok {
 			items = make(map[string]interface{})
@@ -494,11 +483,9 @@ func _item_field(data map[string][]string) (post template.HTML, get template.HTM
 			fieldLen[method] = i
 			tmp["idx"] = strconv.Itoa(i)
 			if _, ok := data[fmt.Sprintf("%v[%v][field]", method, i)]; ok {
-				tmp["label"] = data[fmt.Sprintf("%v[%v][label]", method, i)][0]
-				tmp["field"] = data[fmt.Sprintf("%v[%v][field]", method, i)][0]
-				tmp["type"] = data[fmt.Sprintf("%v[%v][type]", method, i)][0]
-				tmp["value"] = data[fmt.Sprintf("%v[%v][value]", method, i)][0]
-				tmp["des"] = data[fmt.Sprintf("%v[%v][des]", method, i)][0]
+				for _,sub_field := range []string{"label","field","type","value","des"} {
+					tmp["label"] = data[fmt.Sprintf("%v[%v][%v]", method, i,sub_field)][0]
+				}
 				tmpl, err := template.New("val").Parse(valTpl)
 				if err != nil { panic(err) }
 				err = tmpl.Execute(tplWriter, tmp)
