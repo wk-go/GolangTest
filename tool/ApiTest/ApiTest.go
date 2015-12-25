@@ -452,6 +452,38 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 		RenderView(w, "api_group", map[string]interface{}{"req":req, "edit":edit})
 	} else {//分组列表
 		log.Printf("api_group group list\n")
+		conf := &ApiConfig{}
+		conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+
+		apiInfo := make(map[string]interface{})
+		if len(conf_data)>0 {
+			for _, key := range []string{"api_id", "api_name", "api_host", "api_description"} {
+				apiInfo[key] = conf_data[key]
+			}
+		}else {
+			log.Println("api_show:", err)
+		}
+		fmt.Println(":::apiInfo:::",apiInfo)
+		groupList := make(map[string]interface{})
+		if err == nil {
+			if group, ok := conf_data["group"]; ok {
+				if group, ok := group.(map[string]interface{}); ok {
+					for k,v := range group{
+						groupTmp := make(map[string]interface{})
+						groupTmp["group_id"]=k
+						if name,ok:=v.(string);ok{
+							groupTmp["name"]=name
+						}else{
+							groupTmp["name"]=k
+						}
+						groupList[k]=groupTmp
+					}
+				}
+			}
+		}
+		log.Printf("api_group render\n")
+		RenderView(w, "api_group_list", map[string]interface{}{"req":req, "apiInfo":apiInfo,"groupList":groupList})
+
 	}
 	//log.Println("req.PostForm:", req.PostForm)
 	log.Printf("api_group handle end\n")

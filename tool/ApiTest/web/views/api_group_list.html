@@ -1,0 +1,17 @@
+{{.header}}
+<ol class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/api_conf">ApiList</a></li>
+    <li class="active">{{.apiInfo.api_name}}</li>
+</ol>
+<div class="container">
+    {{range .groupList}}
+    <div class="row">
+        <div class="col-sm-2"><a href="/api_item?api={{$.apiInfo.api_id}}&group={{.group_id}}">{{.name}}</a></div>
+        <div class="col-sm-2"></div>
+        <div class="col-sm-2"><a href="/api_group?act=edit&api={{$.apiInfo.api_id}}&group={{.group_id}}">编辑</a></div>
+    </div>
+    {{end}}
+</div>
+<div class=""></div>
+{{.footer}}
