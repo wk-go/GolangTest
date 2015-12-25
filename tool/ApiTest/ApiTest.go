@@ -448,12 +448,12 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 				http.Redirect(w, req, fmt.Sprintf("/api_group?act=add&api=%v", req.FormValue("api")), 302);
 			}
 		}
-	} else {
-		http.Redirect(w, req, "/", 302)
+		log.Printf("api_group render\n")
+		RenderView(w, "api_group", map[string]interface{}{"req":req, "edit":edit})
+	} else {//分组列表
+		log.Printf("api_group group list\n")
 	}
 	//log.Println("req.PostForm:", req.PostForm)
-	log.Printf("api_group render\n")
-	RenderView(w, "api_group", map[string]interface{}{"req":req, "edit":edit})
 	log.Printf("api_group handle end\n")
 }
 //api_item start ------------------------------------------------------------------------
