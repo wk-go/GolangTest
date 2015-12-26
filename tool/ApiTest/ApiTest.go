@@ -665,21 +665,79 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 				http.Redirect(w, req, fmt.Sprintf("/api_item?act=add&api=%v&group=%v", req.FormValue("api"), req.FormValue("group")), 302);
 			}
 		}
-	} else {
-		//http.Redirect(w, req, "/", 302)
+
+		postItem, getItem, postLen, getLen := _item_field(req.PostForm)
+		log.Printf("api_item render\n")
+		RenderView(w, "api_item", map[string]interface{}{
+			"req":req,
+			"edit":edit,
+			"postItem":postItem,
+			"getItem":getItem,
+			"postLen":postLen,
+			"getLen":getLen,
+		})
+	} else {//http.Redirect(w, req, "/", 302)
+		//接口项列表
+		log.Printf("api_group group list\n")
+		conf := &ApiConfig{}
+		conf_data, err := conf.ReadApiConf(req.FormValue("api"))
+
+		apiInfo := make(map[string]interface{})
+		if len(conf_data)>0 {
+			for _, key := range []string{"api_id", "api_name", "api_host", "api_description"} {
+				apiInfo[key] = conf_data[key]
+			}
+		}else {
+			log.Println("api_show:", err)
+		}
+		fmt.Println(":::apiInfo:::",apiInfo)
+		var groupInfo map[string]interface{}
+		if err == nil {
+			if group, ok := conf_data["group"]; ok {
+				if group, ok := group.(map[string]interface{}); ok {
+					if val, ok := group[req.FormValue("group")]; ok{
+						groupInfo,ok = val.(map[string]interface{})
+						if !ok{
+							groupInfo = make(map[string]interface{})
+						}else{
+							groupInfo["group_id"]=req.FormValue("group")
+						}
+					}
+				}
+			}
+		}
+		var itemList  map[string]interface{}
+		if len(groupInfo)>0 {
+			if items, ok := groupInfo["items"]; ok {
+				itemList,ok = items.(map[string]interface{});
+				if !ok{
+					itemList = make(map[string]interface{})
+				}
+			}
+		}
+		log.Printf("api_group render\n")
+		//bread nav
+		breadNav := []map[string]interface{}{
+			map[string]interface{}{
+				"url":"/api_conf",
+				"label":"ApiList",
+			},
+			map[string]interface{}{
+				"url":fmt.Sprintf("/api_group?api=%v",apiInfo["api_id"]),
+				"label":apiInfo["api_name"],
+			},
+			map[string]interface{}{
+				"url":"",
+				"label":groupInfo["name"],
+			},
+		}
+
+		log.Printf("api_item render\n")
+		RenderView(w, "api_item_list", map[string]interface{}{"req":req,"breadNav":breadNav, "apiInfo":apiInfo,"groupInfo":groupInfo,"itemList":itemList})
 	}
-	postItem, getItem, postLen, getLen := _item_field(req.PostForm)
 	//fmt.Printf(postItem, getItem)
 	log.Println("req.PostForm:", req.PostForm)
-	log.Printf("api_item render\n")
-	RenderView(w, "api_item", map[string]interface{}{
-		"req":req,
-		"edit":edit,
-		"postItem":postItem,
-		"getItem":getItem,
-		"postLen":postLen,
-		"getLen":getLen,
-	})
+
 	log.Printf("api_item handle end\n")
 
 }
