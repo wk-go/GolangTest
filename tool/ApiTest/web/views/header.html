@@ -55,3 +55,15 @@
         </div>
     </div>
 </nav>
+<div class="container">
+    <div class="row"><ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        {{range .breadNav}}
+        {{if eq .url ""}}
+        <li class="active">{{.label}}</li>
+        {{else}}
+        <li><a href="{{.url}}">{{.label}}</a></li>
+        {{end}}
+        {{end}}
+    </ol></div>
+</div>

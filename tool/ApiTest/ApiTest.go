@@ -482,7 +482,20 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		log.Printf("api_group render\n")
-		RenderView(w, "api_group_list", map[string]interface{}{"req":req, "apiInfo":apiInfo,"groupList":groupList})
+		//bread nav
+		breadNav := []map[string]interface{}{
+			map[string]interface{}{
+				"url":"/api_conf",
+				"label":"ApiList",
+			},
+			map[string]interface{}{
+				"url":"",
+				"label":apiInfo["api_name"],
+			},
+		}
+
+		log.Printf("api_group render\n")
+		RenderView(w, "api_group_list", map[string]interface{}{"req":req,"breadNav":breadNav, "apiInfo":apiInfo,"groupList":groupList})
 
 	}
 	//log.Println("req.PostForm:", req.PostForm)
