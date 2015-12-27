@@ -388,7 +388,14 @@ func api_conf(w http.ResponseWriter, req *http.Request) {
 		}
 
 		log.Printf("api_conf render\n")
-		RenderView(w, "api_conf_list", map[string]interface{}{"req":req, "apiMap":apiMap})
+
+		subButtons := []map[string]interface{}{
+			map[string]interface{}{
+				"url":"/api_conf?act=add",
+				"label":"Add",
+			},
+		}
+		RenderView(w, "api_conf_list", map[string]interface{}{"req":req, "apiMap":apiMap,"subButtons":subButtons})
 	}
 	log.Println(req.PostForm)
 	log.Printf("api_conf handle end\n")
@@ -513,8 +520,15 @@ func api_group(w http.ResponseWriter, req *http.Request) {
 			},
 		}
 
+		subButtons := []map[string]interface{}{
+			map[string]interface{}{
+				"url":fmt.Sprintf("/api_group?act=add&api=%v",apiInfo["api_id"]),
+				"label":"Add",
+			},
+		}
+
 		log.Printf("api_group render\n")
-		RenderView(w, "api_group_list", map[string]interface{}{"req":req, "breadNav":breadNav, "apiInfo":apiInfo, "groupList":groupList})
+		RenderView(w, "api_group_list", map[string]interface{}{"req":req, "breadNav":breadNav,"subButtons":subButtons, "apiInfo":apiInfo, "groupList":groupList})
 
 	}
 	//log.Println("req.PostForm:", req.PostForm)
@@ -751,8 +765,15 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 			},
 		}
 
+		subButtons := []map[string]interface{}{
+			map[string]interface{}{
+				"url":fmt.Sprintf("/api_item?act=add&api=%v&group=%v",apiInfo["api_id"],groupInfo["group_id"]),
+				"label":"Add",
+			},
+		}
+
 		log.Printf("api_item render\n")
-		RenderView(w, "api_item_list", map[string]interface{}{"req":req, "breadNav":breadNav, "apiInfo":apiInfo, "groupInfo":groupInfo, "itemList":itemList})
+		RenderView(w, "api_item_list", map[string]interface{}{"req":req, "breadNav":breadNav,"subButtons":subButtons, "apiInfo":apiInfo, "groupInfo":groupInfo, "itemList":itemList})
 	}
 	//fmt.Printf(postItem, getItem)
 	log.Println("req.PostForm:", req.PostForm)
