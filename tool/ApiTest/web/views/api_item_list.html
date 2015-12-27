@@ -1,5 +1,6 @@
 {{.header}}
 <div class="container">
+    <div class="row"><div class="col-sm-4 col-sm-offset-8"><a href="/api_item?act=edit&api={{$.apiInfo.api_id}}&group={{$.groupInfo.group_id}}" class="btn btn-primary">Add</a></div></div>
     {{range $key,$v :=.itemList}}
     <div class="row">
         <div class="col-sm-2">{{.name}}</div>
