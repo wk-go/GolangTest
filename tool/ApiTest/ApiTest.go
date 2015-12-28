@@ -661,6 +661,9 @@ func api_item(w http.ResponseWriter, req *http.Request) {
 		}
 		act := req.FormValue("act")
 		if act != "" {
+			if len(req.PostForm) > 0 {
+				conf.SaveItem(req.PostForm)
+			}
 			for _, key := range []string{"api_id", "group_id", "item_id", "item_name", "item_url", "item_dataType"} {
 				if key == "group_id" {
 					req.PostForm.Set(key, req.FormValue("group"))
