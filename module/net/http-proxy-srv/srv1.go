@@ -10,6 +10,8 @@ import (
     "bufio"
     "strings"
     "net"
+    //"io"
+    "time"
 )
 
 
@@ -25,7 +27,53 @@ func handle(w http.ResponseWriter, r *http.Request){
     realReq, _ := http.ReadRequest(bufio.NewReader(strings.NewReader(string(bodyByte))))
     fmt.Println(":::realReq.Host:::", realReq.Host)
     //fmt.Fprint(w,"HTTP/1.1 200 OK\r\n\r\nhello world!")
-    w.Write([]byte("hello world!"))
+    var host,port,err = net.SplitHostPort(realReq.Host)
+    if err != nil{
+        host=realReq.Host
+        port="80"
+    }
+    fmt.Println(":::addrInfo:::", host, port)
+    remoteSrv, err:= net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%s", host, port))
+    if err != nil {
+        fmt.Println("resolve ", realReq.Host, " failed. err:", err)
+        return
+    }
+    remote, err := net.DialTCP("tcp", nil, remoteSrv)
+    if err != nil {
+        return
+    }
+    finishChannel := make(chan bool, 1)
+    go remote.Write(bodyByte)
+    /*var realResp = make([]byte, 204800)
+    respLen, err :=io.ReadAtLeast(remote,realResp,16);
+    fmt.Println(":::realResp[:respLen]:::", realResp[:respLen])
+    w.Write(realResp[:respLen])*/
+    pipeThenClose(remote,w, finishChannel)
+    <-finishChannel
+    remote.Close()
+}
+
+func pipeThenClose(src *net.TCPConn, dst http.ResponseWriter , finish chan bool) {
+    defer func(){
+        src.CloseRead()
+        finish <- true
+    }()
+
+    buf := make([]byte, 5120)
+    for {
+        src.SetReadDeadline(time.Now().Add(60 * time.Second))
+        n, err := src.Read(buf);
+        if n > 0 {
+            data := buf[0:n]
+            //encodeData(data)
+            if _, err := dst.Write(data); err != nil {
+                break
+            }
+        }
+        if err != nil {
+            break
+        }
+    }
 }
 
 //路由表
