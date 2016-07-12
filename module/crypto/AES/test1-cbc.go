@@ -1,4 +1,5 @@
 //http://blog.studygolang.com/2013/01/go%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E4%B9%8Baes/
+//CBC测试
 package main
 import(
 	"crypto/aes"
