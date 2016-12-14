@@ -29,12 +29,20 @@ type Subscription struct {
 	New     <-chan models.Event // New events coming in.
 }
 
-func newEvent(ep models.EventType, user, msg string) models.Event {
-	return models.Event{ep, user, int(time.Now().Unix()), msg}
+func newRoom(roomId string)  {
+	if(isRoomExist(rooms, roomId)){
+		return
+	}
+	room := Room{Id:roomId}
+	rooms.PushBack(room)
 }
 
-func Join(user string, ws *websocket.Conn) {
-	subscribe <- Subscriber{Name: user, Conn: ws}
+func newEvent(ep models.EventType, roomId, user,  msg string) models.Event {
+	return models.Event{ep, roomId, user, int(time.Now().Unix()), msg}
+}
+
+func Join(user,roomId string, ws *websocket.Conn) {
+	subscribe <- Subscriber{Name: user, RoomId:roomId, Conn: ws}
 }
 
 func Leave(user string) {
@@ -43,7 +51,15 @@ func Leave(user string) {
 
 type Subscriber struct {
 	Name string
+	RoomId string
 	Conn *websocket.Conn // Only for WebSocket users; otherwise nil.
+}
+type Room struct {
+	Name		string		//room name
+	Id 			string		//room id
+	Limit		int			//room User number limit
+	count 		int 		//current user number
+	Subscribers	list.List		//user list
 }
 
 var (
@@ -56,6 +72,7 @@ var (
 	// Long polling waiting list.
 	waitingList = list.New()
 	subscribers = list.New()
+	rooms = list.New()
 )
 
 // This function handles all incoming chan messages.
@@ -66,7 +83,7 @@ func chatroom() {
 			if !isUserExist(subscribers, sub.Name) {
 				subscribers.PushBack(sub) // Add user to the end of list.
 				// Publish a JOIN event.
-				publish <- newEvent(models.EVENT_JOIN, sub.Name, "")
+				publish <- newEvent(models.EVENT_JOIN, sub.RoomId, sub.Name, "")
 				beego.Info("New user:", sub.Name, ";WebSocket:", sub.Conn != nil)
 			} else {
 				beego.Info("Old user:", sub.Name, ";WebSocket:", sub.Conn != nil)
@@ -94,7 +111,7 @@ func chatroom() {
 						ws.Close()
 						beego.Error("WebSocket closed:", unsub)
 					}
-					publish <- newEvent(models.EVENT_LEAVE, unsub, "") // Publish a LEAVE event.
+					publish <- newEvent(models.EVENT_LEAVE, sub.Value.(Subscriber).RoomId, unsub, "") // Publish a LEAVE event.
 					break
 				}
 			}
@@ -109,6 +126,15 @@ func init() {
 func isUserExist(subscribers *list.List, user string) bool {
 	for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
 		if sub.Value.(Subscriber).Name == user {
+			return true
+		}
+	}
+	return false
+}
+
+func isRoomExist(rooms *list.List, roomId string) bool {
+	for sub := rooms.Front(); sub != nil; sub = sub.Next() {
+		if sub.Value.(Room).Id == roomId {
 			return true
 		}
 	}

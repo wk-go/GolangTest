@@ -27,10 +27,11 @@ const (
 )
 
 type Event struct {
-	Type      EventType // JOIN, LEAVE, MESSAGE
-	User      string
-	Timestamp int // Unix timestamp (secs)
-	Content   string
+	Type      	EventType 	// JOIN, LEAVE, MESSAGE
+	RoomId		string		//room id
+	User      	string
+	Timestamp 	int 		// Unix timestamp (secs)
+	Content   	string
 }
 
 const archiveSize = 20

@@ -27,13 +27,14 @@ type LongPollingController struct {
 func (this *LongPollingController) Join() {
 	// Safe check.
 	uname := this.GetString("uname")
+	roomId := this.GetString("roomid")
 	if len(uname) == 0 {
 		this.Redirect("/", 302)
 		return
 	}
 
 	// Join chat room.
-	Join(uname, nil)
+	Join(uname, roomId, nil)
 
 	this.TplName = "longpolling.html"
 	this.Data["IsLongPolling"] = true
@@ -45,12 +46,13 @@ func (this *LongPollingController) Post() {
 	this.TplName = "longpolling.html"
 
 	uname := this.GetString("uname")
+	roomId := this.GetString("roomid")
 	content := this.GetString("content")
 	if len(uname) == 0 || len(content) == 0 {
 		return
 	}
 
-	publish <- newEvent(models.EVENT_MESSAGE, uname, content)
+	publish <- newEvent(models.EVENT_MESSAGE,roomId, uname, content)
 }
 
 // Fetch method handles fetch archives requests for LongPollingController.

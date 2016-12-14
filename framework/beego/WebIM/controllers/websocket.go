@@ -46,6 +46,7 @@ func (this *WebSocketController) Get() {
 // Join method handles WebSocket requests for WebSocketController.
 func (this *WebSocketController) Join() {
 	uname := this.GetString("uname")
+	roomId := this.GetString("roomid")
 	if len(uname) == 0 {
 		this.Redirect("/", 302)
 		return
@@ -62,7 +63,7 @@ func (this *WebSocketController) Join() {
 	}
 
 	// Join chat room.
-	Join(uname, ws)
+	Join(uname, roomId, ws)
 	defer Leave(uname)
 
 	// Message receive loop.
@@ -71,7 +72,7 @@ func (this *WebSocketController) Join() {
 		if err != nil {
 			return
 		}
-		publish <- newEvent(models.EVENT_MESSAGE, uname, string(p))
+		publish <- newEvent(models.EVENT_MESSAGE, roomId, uname, string(p))
 	}
 }
 
