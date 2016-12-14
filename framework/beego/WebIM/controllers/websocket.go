@@ -87,6 +87,9 @@ func broadcastWebSocket(event models.Event) {
 	}
 
 	for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
+		if sub.Value.(Subscriber).RoomId != event.RoomId{
+			continue
+		}
 		// Immediately send event to WebSocket users.
 		ws := sub.Value.(Subscriber).Conn
 		if ws != nil {
