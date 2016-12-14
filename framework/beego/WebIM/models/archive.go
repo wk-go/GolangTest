@@ -48,11 +48,11 @@ func NewArchive(event Event) {
 }
 
 // GetEvents returns all events after lastReceived.
-func GetEvents(lastReceived int) []Event {
+func GetEvents(lastReceived int,roomId string) []Event {
 	events := make([]Event, 0, archive.Len())
 	for event := archive.Front(); event != nil; event = event.Next() {
 		e := event.Value.(Event)
-		if e.Timestamp > int(lastReceived) {
+		if e.Timestamp > int(lastReceived) && e.RoomId == roomId {
 			events = append(events, e)
 		}
 	}

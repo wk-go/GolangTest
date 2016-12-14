@@ -39,6 +39,9 @@ func (this *LongPollingController) Join() {
 	this.TplName = "longpolling.html"
 	this.Data["IsLongPolling"] = true
 	this.Data["UserName"] = uname
+
+	this.Data["roomid"] = roomId
+	this.Data["room"] = GetRoom(roomId)
 }
 
 // Post method handles receive messages requests for LongPollingController.
@@ -58,11 +61,12 @@ func (this *LongPollingController) Post() {
 // Fetch method handles fetch archives requests for LongPollingController.
 func (this *LongPollingController) Fetch() {
 	lastReceived, err := this.GetInt("lastReceived")
+	roomId := this.GetString("roomid")
 	if err != nil {
 		return
 	}
 
-	events := models.GetEvents(int(lastReceived))
+	events := models.GetEvents(int(lastReceived),roomId)
 	if len(events) > 0 {
 		this.Data["json"] = events
 		this.ServeJSON()
@@ -74,6 +78,6 @@ func (this *LongPollingController) Fetch() {
 	waitingList.PushBack(ch)
 	<-ch
 
-	this.Data["json"] = models.GetEvents(int(lastReceived))
+	this.Data["json"] = models.GetEvents(int(lastReceived),roomId)
 	this.ServeJSON()
 }

@@ -65,7 +65,7 @@ func PKCS5UnPadding(origData []byte) []byte {
 }
 
 func main(){
-	data := "hello world!!!,hello china!!!"
+	data := "hello world"
 	key :="1234567812345678"
 	en_data,_ := AesEncrypt([]byte(data),[]byte(key))
 	fmt.Println(base64.StdEncoding.EncodeToString(en_data))

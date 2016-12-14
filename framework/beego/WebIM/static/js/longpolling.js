@@ -4,7 +4,7 @@ var isWait = false;
 var fetch = function () {
     if (isWait) return;
     isWait = true;
-    $.getJSON("/lp/fetch?lastReceived=" + lastReceived, function (data) {
+    $.getJSON("/lp/fetch?lastReceived=" + lastReceived+"&roomid="+$('#room_info').data('id'), function (data) {
         if (data == null) return;
         $.each(data, function (i, event) {
             switch (event.Type) {
@@ -27,21 +27,22 @@ var fetch = function () {
         });
         isWait = false;
     });
-}
-
-// Call fetch every 3 seconds
-setInterval(fetch, 3000);
-
-fetch();
+};
 
 $(document).ready(function () {
+
+    // Call fetch every 3 seconds
+    setInterval(fetch, 3000);
+    fetch();
 
     var postConecnt = function () {
         var uname = $('#uname').text();
         var content = $('#sendbox').val();
+        var roomId = $('#room_info').data('id');
         $.post("/lp/post", {
             uname: uname,
-            content: content
+            content: content,
+            roomid:roomId
         });
         $('#sendbox').val("");
     }
