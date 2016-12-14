@@ -29,19 +29,12 @@ type Subscription struct {
 	New     <-chan models.Event // New events coming in.
 }
 
-func newRoom(roomId string)  {
-	if(isRoomExist(rooms, roomId)){
-		return
-	}
-	room := Room{Id:roomId}
-	rooms.PushBack(room)
-}
-
 func newEvent(ep models.EventType, roomId, user,  msg string) models.Event {
 	return models.Event{ep, roomId, user, int(time.Now().Unix()), msg}
 }
 
 func Join(user,roomId string, ws *websocket.Conn) {
+	beego.Info("User [",user,"] Join Room:", roomId)
 	subscribe <- Subscriber{Name: user, RoomId:roomId, Conn: ws}
 }
 
@@ -55,11 +48,44 @@ type Subscriber struct {
 	Conn *websocket.Conn // Only for WebSocket users; otherwise nil.
 }
 type Room struct {
-	Name		string		//room name
-	Id 			string		//room id
-	Limit		int			//room User number limit
-	count 		int 		//current user number
-	Subscribers	list.List		//user list
+	Id          string    //room id
+	Name        string    //room name
+	Limit       int       //room User number limit
+	Count       int       //current user number
+	Subscribers list.List //user list
+}
+
+func newRoom(roomId string)  {
+	if(IsRoomExist(rooms, roomId)){
+		return
+	}
+	room := Room{Id:roomId}
+	rooms.PushBack(room)
+}
+func GetRoom(roomId string) *Room{
+	for sub := rooms.Front(); sub != nil; sub = sub.Next() {
+		if sub.Value.(*Room).Id == roomId {
+			return sub.Value.(*Room)
+		}
+	}
+	return nil
+}
+func GetRoomElement(roomId string) *list.Element{
+	for sub := rooms.Front(); sub != nil; sub = sub.Next() {
+		if sub.Value.(*Room).Id == roomId {
+			return sub
+		}
+	}
+	return nil
+}
+
+func IsRoomExist(rooms *list.List, roomId string) bool {
+	for sub := rooms.Front(); sub != nil; sub = sub.Next() {
+		if sub.Value.(*Room).Id == roomId {
+			return true
+		}
+	}
+	return false
 }
 
 var (
@@ -83,6 +109,8 @@ func chatroom() {
 			if !isUserExist(subscribers, sub.Name) {
 				subscribers.PushBack(sub) // Add user to the end of list.
 				// Publish a JOIN event.
+				room := GetRoom(sub.RoomId)
+				room.Subscribers.PushBack(sub)
 				publish <- newEvent(models.EVENT_JOIN, sub.RoomId, sub.Name, "")
 				beego.Info("New user:", sub.Name, ";WebSocket:", sub.Conn != nil)
 			} else {
@@ -126,15 +154,6 @@ func init() {
 func isUserExist(subscribers *list.List, user string) bool {
 	for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
 		if sub.Value.(Subscriber).Name == user {
-			return true
-		}
-	}
-	return false
-}
-
-func isRoomExist(rooms *list.List, roomId string) bool {
-	for sub := rooms.Front(); sub != nil; sub = sub.Next() {
-		if sub.Value.(Room).Id == roomId {
 			return true
 		}
 	}

@@ -33,6 +33,7 @@ type WebSocketController struct {
 func (this *WebSocketController) Get() {
 	// Safe check.
 	uname := this.GetString("uname")
+	roomId := this.GetString("roomid")
 	if len(uname) == 0 {
 		this.Redirect("/", 302)
 		return
@@ -41,6 +42,8 @@ func (this *WebSocketController) Get() {
 	this.TplName = "websocket.html"
 	this.Data["IsWebSocket"] = true
 	this.Data["UserName"] = uname
+	this.Data["roomid"] = roomId
+	this.Data["room"] = GetRoom(roomId)
 }
 
 // Join method handles WebSocket requests for WebSocketController.
@@ -61,7 +64,6 @@ func (this *WebSocketController) Join() {
 		beego.Error("Cannot setup WebSocket connection:", err)
 		return
 	}
-
 	// Join chat room.
 	Join(uname, roomId, ws)
 	defer Leave(uname)

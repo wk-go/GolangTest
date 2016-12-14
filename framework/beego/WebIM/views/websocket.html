@@ -4,7 +4,7 @@
 {{end}}
 {{define "body"}}
 <div class="container">
-    <h3>{{i18n .Lang "username"}}: <span id="uname">{{.UserName}}</span></h3>
+    <h3>{{i18n .Lang "room_name"}}: <span id="room_info" data-id="{{.roomid}}">{{.room.Name}}</span>&nbsp;{{i18n .Lang "username"}}: <span id="uname">{{.UserName}}</span></h3>
     <h4>{{i18n .Lang "send_box"}}:</h4>
     <form class="form-inline">
         <div class="col-md-6 form-group">

@@ -19,6 +19,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/beego/i18n"
+	"container/list"
 )
 
 var langTypes []string // Languages that are supported.
@@ -35,6 +36,8 @@ func init() {
 			return
 		}
 	}
+	rooms.PushBack(&Room{"r1", "默认房间",5,0,*list.New()})
+	rooms.PushBack(&Room{"r2", "默认房间2",10,0,*list.New()})
 }
 
 // baseController represents base router for all other app routers.
@@ -76,6 +79,12 @@ type AppController struct {
 
 // Get implemented Get() method for AppController.
 func (this *AppController) Get() {
+	roomsInfo  := []Room{}
+	for room := rooms.Front(); room!=nil; room = room.Next(){
+		roomsInfo = append(roomsInfo,Room{Id:room.Value.(*Room).Id,Name:room.Value.(*Room).Name,Limit:room.Value.(*Room).Limit, Count:room.Value.(*Room).Count})
+	}
+
+	this.Data["rooms"] = roomsInfo
 	this.TplName = "welcome.html"
 }
 
@@ -83,6 +92,7 @@ func (this *AppController) Get() {
 func (this *AppController) Join() {
 	// Get form value.
 	uname := this.GetString("uname")
+	roomid := this.GetString("roomid")
 	tech := this.GetString("tech")
 
 	// Check valid.
@@ -93,9 +103,9 @@ func (this *AppController) Join() {
 
 	switch tech {
 	case "longpolling":
-		this.Redirect("/lp?uname="+uname, 302)
+		this.Redirect("/lp?uname="+uname+"&roomid="+roomid, 302)
 	case "websocket":
-		this.Redirect("/ws?uname="+uname, 302)
+		this.Redirect("/ws?uname="+uname+"&roomid="+roomid, 302)
 	default:
 		this.Redirect("/", 302)
 	}
