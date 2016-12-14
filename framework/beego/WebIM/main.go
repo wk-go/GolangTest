@@ -28,6 +28,7 @@ const (
 
 func main() {
 	beego.Info(beego.BConfig.AppName, APP_VER)
+	beego.BConfig.ServerName = "x Server 1.0"
 
 	// Register routers.
 	beego.Router("/", &controllers.AppController{})
@@ -45,6 +46,7 @@ func main() {
 
 	// Register template functions.
 	beego.AddFuncMap("i18n", i18n.Tr)
+	//beego.AppConfig.Set("ServerName","xyzServer")
 
 	beego.Run()
 }
