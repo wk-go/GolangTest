@@ -85,8 +85,9 @@ func broadcastWebSocket(event models.Event) {
 		beego.Error("Fail to marshal event:", err)
 		return
 	}
+	room := GetRoom(event.RoomId)
 
-	for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
+	for sub := room.Subscribers.Front(); sub != nil; sub = sub.Next() {
 		if sub.Value.(Subscriber).RoomId != event.RoomId{
 			continue
 		}

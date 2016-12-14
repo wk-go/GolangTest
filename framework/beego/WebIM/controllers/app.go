@@ -36,8 +36,8 @@ func init() {
 			return
 		}
 	}
-	rooms.PushBack(&Room{"r1", "默认房间",5,0,*list.New()})
-	rooms.PushBack(&Room{"r2", "默认房间2",10,0,*list.New()})
+	rooms.PushBack(&Room{"r1", "默认房间",5,0,list.New()})
+	rooms.PushBack(&Room{"r2", "默认房间2",10,0,list.New()})
 }
 
 // baseController represents base router for all other app routers.

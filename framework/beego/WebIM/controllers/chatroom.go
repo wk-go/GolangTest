@@ -39,6 +39,7 @@ func Join(user,roomId string, ws *websocket.Conn) {
 }
 
 func Leave(user string) {
+	beego.Info("User [",user,"] leave Room")
 	unsubscribe <- user
 }
 
@@ -52,7 +53,15 @@ type Room struct {
 	Name        string    //room name
 	Limit       int       //room User number limit
 	Count       int       //current user number
-	Subscribers list.List //user list
+	Subscribers *list.List //user list
+}
+func (this *Room)Leave(username string){
+	for sub := this.Subscribers.Front();sub!=nil; sub = sub.Next(){
+		if sub.Value.(Subscriber).Name == username{
+			this.Subscribers.Remove(sub)
+			beego.Info("User [",sub.Value.(Subscriber).Name,"] leave Room:",sub.Value.(Subscriber).RoomId)
+		}
+	}
 }
 
 func newRoom(roomId string)  {
@@ -133,8 +142,17 @@ func chatroom() {
 			for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
 				if sub.Value.(Subscriber).Name == unsub {
 					subscribers.Remove(sub)
+
+					user := sub.Value.(Subscriber)
+
+					room := GetRoom(user.RoomId)
+					//beego.Info(":::room.Subscribers:::",room.Subscribers)
+					room.Leave(unsub)
+					//beego.Info(":::room.Subscribers:::",room.Subscribers)
+
+
 					// Clone connection.
-					ws := sub.Value.(Subscriber).Conn
+					ws := user.Conn
 					if ws != nil {
 						ws.Close()
 						beego.Error("WebSocket closed:", unsub)
