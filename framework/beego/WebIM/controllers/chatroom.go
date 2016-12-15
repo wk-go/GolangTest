@@ -57,9 +57,9 @@ type Room struct {
 }
 func (this *Room)Leave(username string){
 	for sub := this.Subscribers.Front();sub!=nil; sub = sub.Next(){
-		if sub.Value.(Subscriber).Name == username{
+		if sub.Value.(*Subscriber).Name == username{
 			this.Subscribers.Remove(sub)
-			beego.Info("User [",sub.Value.(Subscriber).Name,"] leave Room:",sub.Value.(Subscriber).RoomId)
+			beego.Info("User [",sub.Value.(*Subscriber).Name,"] leave Room:",sub.Value.(*Subscriber).RoomId)
 		}
 	}
 }
@@ -116,10 +116,10 @@ func chatroom() {
 		select {
 		case sub := <-subscribe:
 			if !isUserExist(subscribers, sub.Name) {
-				subscribers.PushBack(sub) // Add user to the end of list.
+				subscribers.PushBack(&sub) // Add user to the end of list.
 				// Publish a JOIN event.
 				room := GetRoom(sub.RoomId)
-				room.Subscribers.PushBack(sub)
+				room.Subscribers.PushBack(&sub)
 				publish <- newEvent(models.EVENT_JOIN, sub.RoomId, sub.Name, "")
 				beego.Info("New user:", sub.Name, ";WebSocket:", sub.Conn != nil)
 			} else {
@@ -140,10 +140,10 @@ func chatroom() {
 			}
 		case unsub := <-unsubscribe:
 			for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
-				if sub.Value.(Subscriber).Name == unsub {
+				if sub.Value.(*Subscriber).Name == unsub {
 					subscribers.Remove(sub)
 
-					user := sub.Value.(Subscriber)
+					user := sub.Value.(*Subscriber)
 
 					room := GetRoom(user.RoomId)
 					//beego.Info(":::room.Subscribers:::",room.Subscribers)
@@ -157,7 +157,7 @@ func chatroom() {
 						ws.Close()
 						beego.Error("WebSocket closed:", unsub)
 					}
-					publish <- newEvent(models.EVENT_LEAVE, sub.Value.(Subscriber).RoomId, unsub, "") // Publish a LEAVE event.
+					publish <- newEvent(models.EVENT_LEAVE, sub.Value.(*Subscriber).RoomId, unsub, "") // Publish a LEAVE event.
 					break
 				}
 			}
@@ -171,7 +171,7 @@ func init() {
 
 func isUserExist(subscribers *list.List, user string) bool {
 	for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
-		if sub.Value.(Subscriber).Name == user {
+		if sub.Value.(*Subscriber).Name == user {
 			return true
 		}
 	}

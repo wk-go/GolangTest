@@ -88,15 +88,15 @@ func broadcastWebSocket(event models.Event) {
 	room := GetRoom(event.RoomId)
 
 	for sub := room.Subscribers.Front(); sub != nil; sub = sub.Next() {
-		if sub.Value.(Subscriber).RoomId != event.RoomId{
+		if sub.Value.(*Subscriber).RoomId != event.RoomId{
 			continue
 		}
 		// Immediately send event to WebSocket users.
-		ws := sub.Value.(Subscriber).Conn
+		ws := sub.Value.(*Subscriber).Conn
 		if ws != nil {
 			if ws.WriteMessage(websocket.TextMessage, data) != nil {
 				// User disconnected.
-				unsubscribe <- sub.Value.(Subscriber).Name
+				unsubscribe <- sub.Value.(*Subscriber).Name
 			}
 		}
 	}
