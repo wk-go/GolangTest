@@ -38,7 +38,7 @@ func init() {
 }
 
 func init() {
-    orm.RegisterDriver("mysql", orm.DRMySQL)
+    orm.RegisterDriver("mysql", orm.DRSqlite)
 
     //orm.RegisterDataBase("default", "mysql", "test:123@/2016-beego-test?charset=utf8")
     orm.RegisterDataBase("default", "sqlite3", "data.db")
