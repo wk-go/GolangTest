@@ -14,7 +14,7 @@ CREATE TABLE "profile"
 (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "age" INTEGER Default 0 NOT NULL,
-    "user" INTEGER Default 0 NOT NULL
+    "user_id" INTEGER Default 0 NOT NULL
 )
 
 

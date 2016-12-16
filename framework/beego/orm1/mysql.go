@@ -22,6 +22,7 @@ type Profile struct {
 type Post struct {
     Id    int
     Title string
+    Content string
     User  *User  `orm:"rel(fk)"`    //设置一对多关系
     Tags  []*Tag `orm:"rel(m2m)"`
 }
@@ -62,6 +63,7 @@ func main() {
 
     post := new(Post)
     post.Title="helle world"
+    post.Content = "123"
     post.User = user
     post.Tags = append(post.Tags,tag)
     fmt.Println(o.Insert(post))

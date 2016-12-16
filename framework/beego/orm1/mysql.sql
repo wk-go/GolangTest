@@ -11,7 +11,7 @@ CREATE TABLE `post` (
 CREATE TABLE `profile` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `age` smallint(6) NOT NULL DEFAULT '0',
-  `user` int(10) unsigned NOT NULL DEFAULT '0',
+  `user_id` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
