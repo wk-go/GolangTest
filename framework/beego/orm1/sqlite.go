@@ -1,54 +1,69 @@
 package main
 
 import (
-    "fmt"
     "github.com/astaxie/beego/orm"
     _ "github.com/mattn/go-sqlite3"
+    "fmt"
 )
 
-type Article struct {
-    Id   int
-    Name string
+type User struct {
+    Id          int
+    Name        string
+    Profile     *Profile   `orm:"rel(one)"` // OneToOne relation
+    Post        []*Post `orm:"reverse(many)"` // 设置一对多的反向关系
+}
+
+type Profile struct {
+    Id          int
+    Age         int16
+    User        *User   `orm:"reverse(one)"` // 设置一对一反向关系(可选)
+}
+
+type Post struct {
+    Id    int
+    Title string
+    User  *User  `orm:"rel(fk)"`    //设置一对多关系
+    Tags  []*Tag `orm:"rel(m2m)"`
+}
+
+type Tag struct {
+    Id    int
+    Name  string
+    Posts []*Post `orm:"reverse(many)"`
 }
 
 func init() {
-    orm.RegisterDriver("sqlite", orm.DRSqlite)
-    orm.RegisterDataBase("default", "sqlite3", "data.db")
-    orm.RegisterModel(new(Article))
+    // 需要在init中注册定义的model
+    orm.RegisterModel(new(User), new(Profile), new(Tag), new(Post))
 }
+
+func init() {
+    orm.RegisterDriver("mysql", orm.DRMySQL)
+
+    //orm.RegisterDataBase("default", "mysql", "test:123@/2016-beego-test?charset=utf8")
+    orm.RegisterDataBase("default", "sqlite3", "data.db")
+}
+
 func main() {
-
-     //创建表  没成功，后来手动建表
     o := orm.NewOrm()
-    art := Article{Name: "sea"}
-    // 三个返回参数依次为：是否新创建的，对象Id值，错误
-    if created, id, err := o.ReadOrCreate(&art, "Name"); err == nil {
-        if created {
-            fmt.Println("New Insert an object. Id:", id)
-        } else {
-            fmt.Println("Get an object. Id:", id)
-        }
-    }
+    o.Using("default") // 默认使用 default，你可以指定为其他数据库
 
-    /*//写入数据 成功
-    o := orm.NewOrm()
-    art := new(Article)
-    art.Name = "Mars"
+    profile := new(Profile)
+    profile.Age = 30
 
-    fmt.Println(o.Insert(art))
-    */
-/*
-    // 查询数据 成功 不过发现id会自增 取出的是0，实际数据库中是1
-    o := orm.NewOrm()
-    art := Article{Name: "Mars"}
-    err := o.Read(&art, "Name")
+    user := new(User)
+    user.Profile = profile
+    user.Name = "slene342"
 
-    if err == orm.ErrNoRows {
-        fmt.Println("查询不到")
-    } else if err == orm.ErrMissPK {
-        fmt.Println("找不到主键")
-    } else {
-        fmt.Println(art.Id, art.Name)
-    }*/
+    fmt.Println(o.Insert(profile))
+    fmt.Println(o.Insert(user))
 
+    tag := new(Tag)
+    tag.Name = "heee"
+
+    post := new(Post)
+    post.Title="helle world!!!"
+    post.User = user
+    post.Tags = append(post.Tags,tag)
+    fmt.Println(o.Insert(post))
 }
