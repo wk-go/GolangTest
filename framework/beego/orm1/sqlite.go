@@ -72,4 +72,18 @@ func main() {
     post.User = user
     post.Tags = append(post.Tags,tag)
     fmt.Println(o.Insert(post))
+
+    // 查询插入的结果
+    var users []*User
+    limit := 2;
+    offset := 0;
+    for  num, err := o.QueryTable("user").Filter("name__contains", "slene").Limit(limit).Offset(offset).All(&users);num>0; {
+        fmt.Printf("Returned Rows Num: %s, %s\n", num, err)
+        for i,u := range users{
+            fmt.Printf("%s:%v\n",i,u)
+        }
+        fmt.Println("change Page\n")
+        offset += limit
+        num, err = o.QueryTable("user").Filter("name__contains", "slene").Limit(limit).Offset(offset).All(&users);
+    }
 }
