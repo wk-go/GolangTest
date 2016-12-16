@@ -58,6 +58,10 @@ func main() {
 
     fmt.Println(o.Insert(profile))
     fmt.Println(o.Insert(user))
+    user1 := User{Id:user.Id}
+    if err := o.Read(&user1); err == nil {
+        fmt.Println("o.Read(user1):",err, user1)
+    }
 
     tag := new(Tag)
     tag.Name = "heee"
