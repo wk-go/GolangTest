@@ -10,6 +10,7 @@ import (
     "regexp"
     "github.com/skip2/go-qrcode"
     "strings"
+    "encoding/xml"
 )
 
 func main() {
@@ -17,6 +18,7 @@ func main() {
     b.GetUuid()
     b.GenQrCode()
     b.Wait4Login()
+    b.Login()
 }
 
 const (
@@ -33,6 +35,7 @@ type WxBot struct {
     LoginQr      []byte
     redirect_uri string
     base_host    string
+    base_request map[string]string
 }
 func (this *WxBot) GetUuid() bool{
     urlStr := "https://login.weixin.qq.com/jslogin"
@@ -109,7 +112,7 @@ func (this *WxBot) Wait4Login() string{
                 param := re.FindSubmatch(data)
                 fmt.Println(":::param:::",param)
 
-                RedirectUri := string(param[1]) + "&fun = new"
+                RedirectUri := string(param[1]) + "&fun=new"
                 this.redirect_uri = RedirectUri
                 this.base_uri = RedirectUri[:strings.LastIndex(RedirectUri, "/")]
                 temp_host := this.base_uri[8:]
@@ -129,6 +132,82 @@ func (this *WxBot) Wait4Login() string{
         }
     }
     return code
+}
+
+func (this *WxBot) Login() bool{
+    if len(this.redirect_uri) < 4 {
+        fmt.Println("[ERROR] Login failed due to network problem, please try again.")
+        return false
+    }
+
+    r,err := this.Client.Get(this.redirect_uri)
+    if err != nil{
+        fmt.Println(":::err::",err)
+        return false
+    }
+    defer r.Body.Close()
+    body,_ := ioutil.ReadAll(r.Body)
+    data := string(body)
+    decoder := xml.NewDecoder(strings.NewReader(data))
+    for t, err := decoder.Token(); err == nil; t, err = decoder.Token() {
+        switch token := t.(type) {
+        // 处理元素开始（标签）
+        case xml.StartElement:
+            name := token.Name.Local
+            fmt.Printf("Token name: %s\n", name)
+            for _, attr := range token.Attr {
+                attrName := attr.Name.Local
+                attrValue := attr.Value
+                fmt.Printf("An attribute is: %s %s\n", attrName, attrValue)
+            }
+        // 处理元素结束（标签）
+        case xml.EndElement:
+            fmt.Printf("Token of '%s' end\n", token.Name.Local)
+        // 处理字符数据（这里就是元素的文本）
+        case xml.CharData:
+            content := string([]byte(token))
+            fmt.Printf("This is the content: %v\n", content)
+        default:
+        // ...
+        }
+    }
+    /*
+    doc = xml.dom.minidom.parseString(data)
+    root = doc.documentElement
+
+    for node := range root.childNodes{
+
+    if node.nodeName == "skey":
+    this.skey = node.childNodes[0].data
+    elif
+    node.nodeName == "
+    wxsid
+    ":
+    this.sid = node.childNodes[0].data
+    elif
+    node.nodeName == "
+    wxuin
+    ":
+    this.uin = node.childNodes[0].data
+    elif
+    node.nodeName == "
+    pass_ticket
+    ":
+    this.pass_ticket = node.childNodes[0].data
+}
+
+    if "" in(this.skey, this.sid, this.uin, this.pass_ticket):
+    return False
+
+    this.base_request = {
+        "
+    Uin": this.uin,
+    "Sid": this.sid,
+    "Skey": this.skey,
+    "DeviceID": this.device_id,
+}
+*/
+return true
 }
 
 func (this *WxBot) do_request(url string) (string, []byte) {
