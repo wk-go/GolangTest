@@ -11,14 +11,20 @@ import (
     "github.com/skip2/go-qrcode"
     "strings"
     "encoding/xml"
+    "strconv"
+    "github.com/bitly/go-simplejson"
+    "encoding/json"
 )
 
 func main() {
-    b := &WxBot{}
+    b := NewWxBot()
     b.GetUuid()
     b.GenQrCode()
     b.Wait4Login()
     b.Login()
+    b.init()
+
+    fmt.Printf(":::WxBot:::%+v\n",b )
 }
 
 const (
@@ -28,6 +34,36 @@ const (
     TIMEOUT = "408"
 )
 
+type WxUser struct {
+    Uin               int
+    UserName          string
+    NickName          string
+    HeadImgUrl        string
+    RemarkName        string
+    PYInitial         string
+    PYQuanPin         string
+    RemarkPYInitial   string
+    RemarkPYQuanPin   string
+    HideInputBarFlag  int
+    StarFriend        int
+    Sex               int
+    Signature         string
+    AppAccountFlag    int
+    VerifyFlag        int
+    ContactFlag       int
+    WebWxPluginSwitch int
+    HeadImgFlag       int
+    SnsFlag           int
+}
+type WxSyncKey struct{
+    Count int
+    List []WxSyncKeyItem
+}
+type WxSyncKeyItem struct {
+    Key int
+    Val int
+}
+
 type WxBot struct {
     base_uri     string
     Client       http.Client
@@ -36,6 +72,19 @@ type WxBot struct {
     redirect_uri string
     base_host    string
     base_request map[string]string
+    skey string
+    uin string
+    sid string
+    pass_ticket string
+    device_id string
+    sync_key *WxSyncKey
+    my_account *WxUser
+    sync_key_str string
+}
+func NewWxBot() *WxBot{
+    wxBot := &WxBot{}
+    wxBot.device_id = "e" + strconv.Itoa(10000000000000000+rand.Intn(9999999999999999))[2:17]
+    return wxBot
 }
 func (this *WxBot) GetUuid() bool{
     urlStr := "https://login.weixin.qq.com/jslogin"
@@ -149,65 +198,88 @@ func (this *WxBot) Login() bool{
     body,_ := ioutil.ReadAll(r.Body)
     data := string(body)
     decoder := xml.NewDecoder(strings.NewReader(data))
+    name :=""
     for t, err := decoder.Token(); err == nil; t, err = decoder.Token() {
         switch token := t.(type) {
         // 处理元素开始（标签）
         case xml.StartElement:
-            name := token.Name.Local
-            fmt.Printf("Token name: %s\n", name)
+            name = token.Name.Local
+            /*fmt.Printf("Token name: %s\n", name)
             for _, attr := range token.Attr {
                 attrName := attr.Name.Local
                 attrValue := attr.Value
                 fmt.Printf("An attribute is: %s %s\n", attrName, attrValue)
-            }
+            }*/
         // 处理元素结束（标签）
         case xml.EndElement:
-            fmt.Printf("Token of '%s' end\n", token.Name.Local)
+            //fmt.Printf("Token of '%s' end\n", token.Name.Local)
+            name = ""
         // 处理字符数据（这里就是元素的文本）
         case xml.CharData:
             content := string([]byte(token))
-            fmt.Printf("This is the content: %v\n", content)
+            switch name {
+            case "skey":
+                this.skey =content
+            case "wxsid":
+                this.sid = content
+            case "wxuin":
+                this.uin = content
+            case "pass_ticket":
+                this.pass_ticket = content
+            }
+            //fmt.Printf("This is the content: %v\n", content)
         default:
         // ...
         }
     }
-    /*
-    doc = xml.dom.minidom.parseString(data)
-    root = doc.documentElement
-
-    for node := range root.childNodes{
-
-    if node.nodeName == "skey":
-    this.skey = node.childNodes[0].data
-    elif
-    node.nodeName == "
-    wxsid
-    ":
-    this.sid = node.childNodes[0].data
-    elif
-    node.nodeName == "
-    wxuin
-    ":
-    this.uin = node.childNodes[0].data
-    elif
-    node.nodeName == "
-    pass_ticket
-    ":
-    this.pass_ticket = node.childNodes[0].data
+    if len(this.skey) == 0 || len(this.sid) == 0 || len(this.uin) == 0 || len(this.pass_ticket) == 0{
+        return false
+    }
+    this.base_request = map[string]string{
+        "Uin": this.uin,
+        "Sid": this.sid,
+        "Skey": this.skey,
+        "DeviceID": this.device_id,
+    }
+    return true
 }
 
-    if "" in(this.skey, this.sid, this.uin, this.pass_ticket):
-    return False
+func (this *WxBot) init() bool{
+    urlStr := this.base_uri + fmt.Sprintf("/webwxinit?r=%d&lang=en_US&pass_ticket=%s" , time.Now().Unix(), this.pass_ticket)
+    j := simplejson.New()
+    j.Set("BaseRequest",this.base_request)
+    data,_ := j.MarshalJSON()
+    fmt.Println(":::data:::", string(data))
+    r,_ := this.Client.Post(urlStr, "raw", strings.NewReader(string(data)))
+    defer r.Body.Close()
+    body,_ := ioutil.ReadAll(r.Body)
+    //fmt.Println(":::body:::",string(body))
+    j,_ = simplejson.NewJson(body)
+    sync_key,_ := j.Get("SyncKey").Map()
+    //fmt.Println(":::sync_key:::", sync_key)
+    b,_ :=json.Marshal(sync_key)
+    this.sync_key = &WxSyncKey{}
+    json.Unmarshal(b,this.sync_key)
+    //fmt.Printf(":::this.sync_key:::%+v\n",this.sync_key)
 
-    this.base_request = {
-        "
-    Uin": this.uin,
-    "Sid": this.sid,
-    "Skey": this.skey,
-    "DeviceID": this.device_id,
-}
-*/
-return true
+    my_account  := j.Get("User").Interface()
+    fmt.Println(":::my_account:::", my_account)
+    b,_ = json.Marshal(my_account)
+    //fmt.Println(":::b:::", string(b))
+    this.my_account = &WxUser{}
+    json.Unmarshal(b,this.my_account)
+    //fmt.Printf(":::this.my_account:::%+v\n", this.my_account)
+
+    conj := "";
+    this.sync_key_str = ""
+    for _,v := range this.sync_key.List{
+            this.sync_key_str += conj + strconv.Itoa(v.Key) + "_" + strconv.Itoa(v.Val)
+            if len(conj) == 0{
+                conj ="|"
+            }
+    }
+    ret,_ :=j.GetPath("BaseResponse/Ret").Int()
+    return ret == 0
 }
 
 func (this *WxBot) do_request(url string) (string, []byte) {
