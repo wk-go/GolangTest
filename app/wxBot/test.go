@@ -16,6 +16,7 @@ import (
     "encoding/json"
     "os"
     "io"
+    "net/http/cookiejar"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
     b.get_contact()
 
     fmt.Printf(":::WxBot:::%+v\n",b )
+    fmt.Printf("%+v",b.Client.Jar)
 }
 
 /********** helper func *****/
@@ -144,7 +146,10 @@ func NewWxBot() *WxBot{
     wxBot.temp_pwd = "./tmp"
     wxBot.is_big_contact = false
     wxBot.DEBUG = true
-    wxBot.Client = &http.Client{}
+    cookieJar, _ := cookiejar.New(nil)
+    wxBot.Client = &http.Client{
+        Jar: cookieJar,
+    }
     return wxBot
 }
 
@@ -168,8 +173,6 @@ func (this *WxBot) Do(method, urlStr string, body io.Reader, bodyType string) ([
         }
         req.Header.Set("Content-Type", bodyType)
     }
-
-
     req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5")
 
     resp, err := this.Client.Do(req)
@@ -192,12 +195,7 @@ func (this *WxBot) GetUuid() bool{
         "lang": []string{"zh_CN"},
         "_": []string{string(int(time.Now().Unix()) * 1000 + rand.Int())},
     }
-    resp, err :=this.Client.PostForm(urlStr,params)
-    if err != nil {
-        // handle error
-    }
-    defer resp.Body.Close()
-    body, err := ioutil.ReadAll(resp.Body)
+    body, err :=this.PostForm(urlStr,params)
     if err !=nil{
 
     }
@@ -287,13 +285,11 @@ func (this *WxBot) Login() bool{
         return false
     }
 
-    r,err := this.Client.Get(this.redirect_uri)
+    body,err := this.Get(this.redirect_uri)
     if err != nil{
         fmt.Println(":::err::",err)
         return false
     }
-    defer r.Body.Close()
-    body,_ := ioutil.ReadAll(r.Body)
     data := string(body)
     decoder := xml.NewDecoder(strings.NewReader(data))
     name :=""
@@ -348,9 +344,7 @@ func (this *WxBot) init() bool{
     j.Set("BaseRequest",this.base_request)
     data,_ := j.MarshalJSON()
     fmt.Println(":::data:::", string(data))
-    r,_ := this.Client.Post(urlStr, "raw", strings.NewReader(string(data)))
-    defer r.Body.Close()
-    body,_ := ioutil.ReadAll(r.Body)
+    body,_ := this.Post(urlStr, "raw", string(data))
     //fmt.Println(":::body:::",string(body))
     j,_ = simplejson.NewJson(body)
     sync_key,_ := j.Get("SyncKey").Map()
@@ -390,9 +384,7 @@ func (this *WxBot) status_notify() bool {
     paramsJson.Set("ToUserName", this.my_account.UserName)
     paramsJson.Set("ClientMsgId", int(time.Now().Unix()))
     params,_ := paramsJson.MarshalJSON()
-    r,_ := this.Client.Post(urlStr,"raw", strings.NewReader(string(params)))
-    defer r.Body.Close()
-    body,_ := ioutil.ReadAll(r.Body)
+    body,_ := this.Post(urlStr,"raw", string(params))
     //fmt.Println(":::status_notify body:::",string(body))
     respJson,_ := simplejson.NewJson(body)
     ret,_ := respJson.GetPath("BaseResponse/Ret").Int()
@@ -506,12 +498,7 @@ func (this *WxBot) get_contact() bool{
     return true
 }
 func (this *WxBot) do_request(url string) (string, []byte) {
-    r, err := this.Client.Get(url)
-    if err != nil {
-
-    }
-    defer r.Body.Close()
-    body, err := ioutil.ReadAll(r.Body)
+    body, err := this.Get(url)
     if err != nil {
 
     }
