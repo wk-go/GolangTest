@@ -28,6 +28,7 @@ func main() {
     b.init()
     b.status_notify()
     b.get_contact()
+    b.proc_msg()
 
     fmt.Printf(":::WxBot:::%+v\n",b )
     fmt.Printf("%+v",b.Client.Jar)
@@ -180,6 +181,8 @@ type WxBot struct {
     is_big_contact bool
     temp_pwd string
     DEBUG bool
+
+    sync_host string
 
     member_list  []*WxUser
     contact_list []*WxUser
@@ -572,6 +575,50 @@ func (this *WxBot) batch_get_group_members(){
         this. group_members[gid] = members
         this.encry_chat_room_id_list[gid] = group.EncryChatRoomId
     }
+}
+
+func (this *WxBot) test_sync_check() bool{
+    for _, host1 := range []string{"webpush.", "webpush2."}{
+        this.sync_host = host1+this.base_host
+        retcode, _ := this.sync_check()
+        if retcode == "0"{
+            return true
+        }
+    }
+    return false
+}
+
+func (this *WxBot) sync_check() (string,string){
+    params := url.Values{
+        "r": []string{strconv.Itoa(int(time.Now().Unix()))},
+        "sid": []string{this.sid},
+        "uin": []string{this.uin},
+        "skey": []string{this.skey},
+        "deviceid": []string{this.device_id},
+        "synckey": []string{this.sync_key_str},
+        "_": []string{strconv.Itoa(int(time.Now().Unix()))},
+    }
+    urlStr := "https://" + this.sync_host + "/cgi-bin/mmwebwx-bin/synccheck?" + params.Encode()
+
+    body,err := this.Get(urlStr)
+    if err != nil {
+        fmt.Println("::::snyc_check::::",err)
+        return "-1", "-1"
+    }
+    re,_ := regexp.Compile("window.synccheck=\\{retcode:\"([0-9]+?)\",selector:\"([0-9]+?)\"\\}")
+    subMatch := re.FindSubmatch(body)
+    if len(subMatch) < 3{
+        return "-1", "-1"
+    }
+    retcode := subMatch[1]
+    selector := subMatch[2]
+    return string(retcode), string(selector)
+}
+
+func (this *WxBot) proc_msg(){
+    this.test_sync_check()
+    retcode, selector := this.sync_check()
+    fmt.Printf("::::retcode::::%v:::::selector:::::%v\n", retcode, selector)
 }
 
 func (this *WxBot) do_request(url string) (string, []byte) {
