@@ -84,6 +84,53 @@ type WxUser struct {
     EncryChatRoomId  string
     IsOwner          int
 }
+type WxGroup struct{
+    Uin int
+    UserName string
+    NickName string
+    HeadImgUrl string
+    ContactFlag int
+    MemberCount int
+    MemberList []*WxGroupMember
+    RemarkName string
+    HideInputBarFlag int
+    Sex int
+    Signature string
+    VerifyFlag int
+    OwnerUin int
+    PYInitial string
+    PYQuanPin string
+    RemarkPYInitial string
+    RemarkPYQuanPin string
+    StarFriend int
+    AppAccountFlag int
+    Statues int
+    AttrStatus int
+    Province string
+    City string
+    Alias string
+    SnsFlag int
+    UniFriend int
+    DisplayName string
+    ChatRoomId int
+    KeyWord string
+    EncryChatRoomId string
+    IsOwner int
+}
+
+type WxGroupMember struct{
+    Uin int
+    UserName string
+    NickName string
+    AttrStatus int
+    PYInitial string
+    PYQuanPin string
+    RemarkPYInitial string
+    RemarkPYQuanPin string
+    MemberStatus int
+    DisplayName string
+    KeyWord string
+}
 
 type WxMe struct {
     Uin               int
@@ -139,6 +186,9 @@ type WxBot struct {
     public_list []*WxUser
     special_list []*WxUser
     group_list []*WxUser
+
+    group_members map[string][]*WxGroupMember
+    encry_chat_room_id_list map[string]string
 }
 func NewWxBot() *WxBot{
     wxBot := &WxBot{}
@@ -420,13 +470,18 @@ func (this *WxBot) get_contact() bool{
 
     j,_ := simplejson.NewJson(body)
     member_list := j.Get("MemberList").Interface()
-    fmt.Printf(":::this.member_list:::%+v\n",this.member_list)
+    fmt.Printf(":::member_list:::%+v\n",member_list)
     b,_ := json.Marshal(member_list)
+    fmt.Println("::::b:::::",string(b))
     this.member_list = []*WxUser{}
-    json.Unmarshal(b, this.member_list)
+    json.Unmarshal(b, &this.member_list)
     fmt.Printf(":::this.member_list:::%+v\n",this.member_list)
+    fmt.Printf(":::this.member_list0:::%+v\n",this.member_list[0])
+    fmt.Printf(":::this.member_list1:::%+v\n",this.member_list[1])
+    fmt.Printf(":::this.member_list2:::%+v\n",this.member_list[2])
+    fmt.Printf(":::this.member_list3:::%+v\n",this.member_list[3])
 
-    /*    special_users := []string{"newsapp", "fmessage", "filehelper", "weibo", "qqmail",
+        special_users := []string{"newsapp", "fmessage", "filehelper", "weibo", "qqmail",
             "fmessage", "tmessage", "qmessage", "qqsync", "floatbottle",
             "lbsapp", "shakeapp", "medianote", "qqfriend", "readerapp",
             "blogapp", "facebookapp", "masssendapp", "meishiapp",
@@ -440,63 +495,85 @@ func (this *WxBot) get_contact() bool{
         this.special_list = []*WxUser{}
         this.group_list = []*WxUser{}
 
-        for contact := range this.member_list {
-            switch contact {
-            case contact.VerifyFlag & 8 != 0:  // 公众号
+        for _,contact := range this.member_list {
+            fmt.Printf(":::::contact:::::::%+v\n\n",contact)
+            switch {
+            case (contact.VerifyFlag & 8) != 0:  // 公众号
                 this.public_list = append(this.public_list, contact)
-            *//*this.account_info["normal_member"][contact["UserName"]] =
-            {
-                "type": "public", "info": contact,
-            }*//*
+            //this.account_info["normal_member"][contact["UserName"]] ={"type": "public", "info": contact,}
             case strInSlice(contact.UserName, special_users):// 特殊账户
                 this.special_list = append(this.special_list, contact)
-            *//*this.account_info["normal_member"][contact["UserName"]] =
-            {
-                "type": "special", "info": contact
-            }*//*
-            case contact["UserName"].find("@@") != -1:  // 群聊
+            //this.account_info["normal_member"][contact["UserName"]] ={"type": "special", "info": contact}
+            case strings.Index(contact.UserName,"@@") != -1:  // 群聊
                 this.group_list = append(this.group_list, contact)
-            *//*this.account_info["normal_member"][contact["UserName"]] =
-            {
-                "type": "group", "info": contact
-            }*//*
-            case contact["UserName"] == this.my_account.UserName:  // 自己
-            *//*this.account_info["normal_member"][contact["UserName"]] =
-            {
-                "type": "self", "info": contact
-            }*//*
+            //this.account_info["normal_member"][contact["UserName"]] ={"type": "group", "info": contact}
+            case this.my_account !=nil && contact.UserName == this.my_account.UserName:  // 自己
+            //this.account_info["normal_member"][contact["UserName"]] ={"type": "self", "info": contact}
             default:
                 this.contact_list = append(this.contact_list, contact)
             //this.account_info["normal_member"][contact["UserName"]] = {"type": "contact", "info": contact}
             }
-        }*/
+        }
 
-/*    this.batch_get_group_members()
+    this.batch_get_group_members()
 
-    for group in this.group_members:
-        for member in this.group_members[group]:
-            if member["UserName"] not in this.account_info:
-                this.account_info["group_member"][member["UserName"]] = \
-                {"type": "group_member", "info": member, "group": group}
+    /*    for group in this.group_members:
+            for member in this.group_members[group]:
+                if member["UserName"] not in this.account_info:
+                    this.account_info["group_member"][member["UserName"]] = {"type": "group_member", "info": member, "group": group}
 
-    if this.DEBUG{
-    with open(os.path.join(this.temp_pwd, "contact_list.json"), "w") as f:
-    f.write(json.dumps(this.contact_list))
-    with open(os.path.join(this.temp_pwd, "special_list.json"), "w") as f:
-    f.write(json.dumps(this.special_list))
-    with open(os.path.join(this.temp_pwd, "group_list.json"), "w") as f:
-    f.write(json.dumps(this.group_list))
-    with open(os.path.join(this.temp_pwd, "public_list.json"), "w") as f:
-    f.write(json.dumps(this.public_list))
-    with open(os.path.join(this.temp_pwd, "member_list.json"), "w") as f:
-    f.write(json.dumps(this.member_list))
-    with open(os.path.join(this.temp_pwd, "group_users.json"), "w") as f:
-    f.write(json.dumps(this.group_members))
-    with open(os.path.join(this.temp_pwd, "account_info.json"), "w") as f:
-    f.write(json.dumps(this.account_info))
-}*/
+        if this.DEBUG{
+        with open(os.path.join(this.temp_pwd, "contact_list.json"), "w") as f:
+        f.write(json.dumps(this.contact_list))
+        with open(os.path.join(this.temp_pwd, "special_list.json"), "w") as f:
+        f.write(json.dumps(this.special_list))
+        with open(os.path.join(this.temp_pwd, "group_list.json"), "w") as f:
+        f.write(json.dumps(this.group_list))
+        with open(os.path.join(this.temp_pwd, "public_list.json"), "w") as f:
+        f.write(json.dumps(this.public_list))
+        with open(os.path.join(this.temp_pwd, "member_list.json"), "w") as f:
+        f.write(json.dumps(this.member_list))
+        with open(os.path.join(this.temp_pwd, "group_users.json"), "w") as f:
+        f.write(json.dumps(this.group_members))
+        with open(os.path.join(this.temp_pwd, "account_info.json"), "w") as f:
+        f.write(json.dumps(this.account_info))
+    }*/
     return true
 }
+
+func (this *WxBot) batch_get_group_members(){
+    //批量获取所有群聊成员信息
+    urlStr := this.base_uri + fmt.Sprintf("/webwxbatchgetcontact?type=ex&r=%s&pass_ticket=%s", int(time.Now().Unix()), this.pass_ticket)
+    j := simplejson.New()
+    j.Set("BaseRequest",this.base_request)
+    j.Set("Count", len(this.group_list))
+    list := []map[string]string{}
+    for _,v :=range this.group_list{
+        list = append(list, map[string]string{"UserName": v.UserName,"EncryChatRoomId":"",})
+    }
+    j.Set("List",list)
+    params,_ := j.MarshalJSON()
+    body,err := this.Post(urlStr,"raw", string(params))
+    if err != nil{
+
+    }
+    fmt.Printf(":::body:::%+v\n",string(body))
+    j,_ = simplejson.NewJson(body)
+    groupList := []*WxGroup{}
+    gList := j.Get("ContactList").Interface()
+    b,_ := json.Marshal(gList)
+    json.Unmarshal(b,&groupList)
+    fmt.Printf("::::groupList::::%+v\n\n", groupList[0])
+    this.group_members = map[string][]*WxGroupMember{}
+    this.encry_chat_room_id_list = map[string]string{}
+    for _,group := range groupList{
+        gid := group.UserName
+        members := group.MemberList
+        this. group_members[gid] = members
+        this.encry_chat_room_id_list[gid] = group.EncryChatRoomId
+    }
+}
+
 func (this *WxBot) do_request(url string) (string, []byte) {
     body, err := this.Get(url)
     if err != nil {
