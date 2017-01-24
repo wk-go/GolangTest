@@ -51,7 +51,10 @@ const (
     SCANED = "201"
     TIMEOUT = "408"
 )
-
+type WxBaseResponse struct {
+    Ret int
+    ErrMsg string
+}
 type WxUser struct {
     Uin              int
     UserName         string
@@ -131,6 +134,72 @@ type WxGroupMember struct{
     MemberStatus int
     DisplayName string
     KeyWord string
+}
+type WxSyncResponse struct {
+    BaseResponse *WxBaseResponse
+    AddMsgCount int
+    AddMsgList []*WxMsg
+    ModContactCount int
+    ModContactList []interface{}
+    DelContactCount int
+    DelContactList []interface{}
+    ModChatRoomMemberCount int
+    ModChatRoomMemberList []interface{}
+    Profile interface{}
+    ContinueFlag int
+    SyncKey *WxSyncKey
+    SKey string
+    SyncCheckKey *WxSyncKey
+}
+type WxMsg struct {
+    MsgId string
+    FromUserName string
+    ToUserName string
+    MsgType int
+    Content string
+    Status int
+    ImgStatus int
+    CreateTime int
+    VoiceLength int
+    PlayLength int
+    FileName string
+    FileSize string
+    MediaId string
+    Url string
+    AppMsgType int
+    StatusNotifyCode int
+    StatusNotifyUserName string
+RecommendInfo *WxMsgRecommendInfo
+ForwardFlag int
+AppInfo *WxMsgAppInfo
+HasProductId int
+Ticket string
+ImgHeight int
+ImgWidth int
+SubMsgType int
+NewMsgId int
+OriContent string
+}
+type WxMsgRecommendInfo struct {
+    UserName string
+    NickName string
+    QQNum int
+    Province string
+    City string
+    Content string
+    Signature string
+    Alias string
+    Scene int
+    VerifyFlag int
+    AttrStatus int
+    Sex int
+    Ticket string
+    OpCode int
+}
+
+type WxMsgAppInfo struct {
+    AppID string
+    Type int
 }
 
 type WxMe struct {
@@ -314,7 +383,7 @@ func (this *WxBot) Wait4Login() string{
                 this.redirect_uri = RedirectUri
                 this.base_uri = RedirectUri[:strings.LastIndex(RedirectUri, "/")]
                 temp_host := this.base_uri[8:]
-                this.base_host = temp_host[:strings.LastIndex(temp_host, "/")]
+                this.base_host = temp_host[:strings.Index(temp_host, "/")]
                 fmt.Printf("[Success] WeChat login:%v\n", this)
                 return code
             case code == TIMEOUT :
@@ -344,6 +413,7 @@ func (this *WxBot) Login() bool{
         return false
     }
     data := string(body)
+    fmt.Println("::::::login data:::::", data)
     decoder := xml.NewDecoder(strings.NewReader(data))
     name :=""
     for t, err := decoder.Token(); err == nil; t, err = decoder.Token() {
@@ -478,11 +548,11 @@ func (this *WxBot) get_contact() bool{
     fmt.Println("::::b:::::",string(b))
     this.member_list = []*WxUser{}
     json.Unmarshal(b, &this.member_list)
-    fmt.Printf(":::this.member_list:::%+v\n",this.member_list)
+    fmt.Printf(":::this.member_list:::%+v\n",this.member_list)/*
     fmt.Printf(":::this.member_list0:::%+v\n",this.member_list[0])
     fmt.Printf(":::this.member_list1:::%+v\n",this.member_list[1])
     fmt.Printf(":::this.member_list2:::%+v\n",this.member_list[2])
-    fmt.Printf(":::this.member_list3:::%+v\n",this.member_list[3])
+    fmt.Printf(":::this.member_list3:::%+v\n",this.member_list[3])*/
 
         special_users := []string{"newsapp", "fmessage", "filehelper", "weibo", "qqmail",
             "fmessage", "tmessage", "qmessage", "qqsync", "floatbottle",
@@ -560,7 +630,7 @@ func (this *WxBot) batch_get_group_members(){
     if err != nil{
 
     }
-    fmt.Printf(":::body:::%+v\n",string(body))
+    //fmt.Printf(":::body:::%+v\n",string(body))
     j,_ = simplejson.NewJson(body)
     groupList := []*WxGroup{}
     gList := j.Get("ContactList").Interface()
@@ -599,8 +669,14 @@ func (this *WxBot) sync_check() (string,string){
         "_": []string{strconv.Itoa(int(time.Now().Unix()))},
     }
     urlStr := "https://" + this.sync_host + "/cgi-bin/mmwebwx-bin/synccheck?" + params.Encode()
+    fmt.Println("::::urlStr::::", urlStr)
 
     body,err := this.Get(urlStr)
+    if len(body) > 500{
+        fmt.Println("::::body::::",string(body[:500]))
+    }else{
+        fmt.Println("::::body::::",string(body))
+    }
     if err != nil {
         fmt.Println("::::snyc_check::::",err)
         return "-1", "-1"
@@ -617,9 +693,217 @@ func (this *WxBot) sync_check() (string,string){
 
 func (this *WxBot) proc_msg(){
     this.test_sync_check()
-    retcode, selector := this.sync_check()
-    fmt.Printf("::::retcode::::%v:::::selector:::::%v\n", retcode, selector)
+    durationTime := int64(800*time.Millisecond)
+    for {
+        check_time := time.Now().UnixNano()
+
+        retcode, selector := this.sync_check()
+        // print "[DEBUG] sync_check:", retcode, selector
+        switch {
+        case retcode == "1100":  // 从微信客户端上登出
+            break
+        case retcode == "1101":  // 从其它设备上登了网页微信
+            break
+        case retcode == "0":
+            switch {
+            case selector == "2":  // 有新消息
+                r := this.sync()
+                if r != nil{
+                    this.handle_msg(r)
+                }
+            case selector == "3":  // 未知
+                r := this.sync()
+                if r != nil{
+                    this.handle_msg(r)}
+            case selector == "4":  // 通讯录更新
+                r := this.sync()
+                if r != nil{
+                    this.get_contact()}
+            case selector == "6":  // 可能是红包
+                r := this.sync()
+                if r != nil{
+                    this.handle_msg(r)}
+            case selector == "7":  // 在手机上操作了微信
+                r := this.sync()
+                if r != nil{
+                    this.handle_msg(r)}
+            case selector == "0":  // 无事件
+
+            default:
+                fmt.Println("[DEBUG] sync_check:", retcode, selector)
+                r := this.sync()
+                if r !=nil{
+                    this.handle_msg(r)
+                }
+            }
+        default:
+            fmt.Println("[DEBUG] sync_check:", retcode, selector)
+            time.Sleep(10 * time.Second)
+        }
+        this.schedule()
+        //except:
+        //    print "[ERROR] Except in proc_msg"
+        //    print format_exc()
+        check_time = time.Now().UnixNano() - check_time
+        if check_time < durationTime{
+            time.Sleep(1*time.Second - time.Duration(check_time))
+        }
+    }
 }
+
+func (this *WxBot) sync()*WxSyncResponse{
+    urlStr := this.base_uri + fmt.Sprintf("/webwxsync?sid=%s&skey=%s&lang=en_US&pass_ticket=%s", this.sid, this.skey, this.pass_ticket)
+    params := map[string]interface{}{
+        "BaseRequest": this.base_request,
+        "SyncKey": this.sync_key,
+        "rr": int(time.Now().Unix()),
+    }
+    b,_ := json.Marshal(params)
+    j,_ := simplejson.NewJson(b)
+    paramData,_ := j.MarshalJSON()
+    body,err := this.Post(urlStr, "raw", string(paramData))
+    if err != nil{
+    }
+    fmt.Println("::::sync::::",string(body))
+    dic := &WxSyncResponse{}
+    err = json.Unmarshal(body, dic)
+    if err != nil {
+        fmt.Println("::::sync err::::" , err)
+        return nil
+    }
+    this.sync_key = dic.SyncKey
+
+    conj := "";
+    this.sync_key_str = ""
+    for _,v := range this.sync_key.List{
+        this.sync_key_str += conj + strconv.Itoa(v.Key) + "_" + strconv.Itoa(v.Val)
+        if len(conj) == 0{
+            conj ="|"
+        }
+    }
+
+    return dic
+}
+/**
+处理原始微信消息的内部函数
+        msg_type_id:
+            0 -> Init
+            1 -> Self
+            2 -> FileHelper
+            3 -> Group
+            4 -> Contact
+            5 -> Public
+            6 -> Special
+            99 -> Unknown
+ */
+func (this *WxBot) handle_msg(r *WxSyncResponse){
+
+    fmt.Printf(":::::::handle_msg dic:::::::::%+v\n",r)
+    fmt.Printf(":::::::handle_msg msg:::::::::%+v\n",r.AddMsgList[0])
+    /*msg_type_id := 0
+    for _,msg := range r.AddMsgList{
+        user := map[string]string{"id": msg.FromUserName, "name": "unknown"}
+        switch{
+        case msg["MsgType"] == 51 && msg["StatusNotifyCode"] == 4:  // init message
+            msg_type_id = 0
+            user["name"] = "system"
+            //会获取所有联系人的username 和 wxid，但是会收到3次这个消息，只取第一次
+            *//*if this.is_big_contact && len(this.full_user_name_list) == 0{
+            this.full_user_name_list = msg["StatusNotifyUserName"].split(",")
+            this.wxid_list = re.search(r"username&gt;(.*?)&lt;/username", msg["Content"]).group(1).split(",")
+            with open(os.path.join(this.temp_pwd,"UserName.txt"), "w") as f:
+            f.write(msg["StatusNotifyUserName"])
+            with open(os.path.join(this.temp_pwd,"wxid.txt"), "w") as f:
+            f.write(json.dumps(this.wxid_list))
+            fmt.Println("[INFO] Contact list is too big. Now start to fetch member list .")
+            this.get_big_contact()
+        }*//*
+
+        case msg["MsgType"] == 37:  // friend request
+            msg_type_id = 37
+        // content = msg["Content"]
+        // username = content[content.index("fromusername="): content.index("encryptusername")]
+        // username = username[username.index(""") + 1: username.rindex(""")]
+        // print u"[Friend Request]"
+        // print u"       Nickname：" + msg["RecommendInfo"]["NickName"]
+        // print u"       附加消息："+msg["RecommendInfo"]["Content"]
+        // // print u"Ticket："+msg["RecommendInfo"]["Ticket"] // Ticket添加好友时要用
+        // print u"       微信号："+username //未设置微信号的 腾讯会自动生成一段微信ID 但是无法通过搜索 搜索到此人
+        case msg["FromUserName"] == this.my_account["UserName"]:  // Self
+            msg_type_id = 1
+            user["name"] = "this.
+        case msg["ToUserName"] == "filehelper":  // File Helper
+            msg_type_id = 2
+            user["name"] = "file_helper"
+        case msg["FromUserName"][:2] == "@@":  // Group
+            msg_type_id = 3
+            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+        case this.is_contact(msg.FromUserName):  // Contact
+            msg_type_id = 4
+            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+        case this.is_public(msg.FromUserName):  // Public
+            msg_type_id = 5
+            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+        case this.is_special(msg.FromUserName):  // Special
+            msg_type_id = 6
+            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+        default:
+            msg_type_id = 99
+            user["name"] = "unknown"
+        }
+        if len(user["name"])==0{
+            user["name"] = "unknown"
+        }
+        user["name"] = html.UnescapeString(user["name"])
+
+        if this.DEBUG && msg_type_id != 0{
+            fmt.Printf("[MSG] %s:\n" , user["name"])
+        }
+        content := this.extract_msg_content(msg_type_id, msg)
+        message := map[string]interface{}{"msg_type_id": msg_type_id,
+            "msg_id": msg["MsgId"],
+            "content": content,
+            "to_user_id": msg["ToUserName"],
+            "user": user}
+        this.handle_msg_all(message)
+    }*/
+}
+
+func (this *WxBot) handle_msg_all(msg map[string]interface{}){
+
+}
+func (this *WxBot) schedule(){
+
+}
+
+func (this *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) string{
+    return ""
+}
+
+func (this *WxBot) get_contact_name(name string) string{
+
+    return ""
+}
+
+func (this *WxBot) get_contact_prefer_name(uid string){
+
+}
+
+func (this *WxBot) is_contact(uid string)bool{
+    return true
+}
+
+func (this *WxBot) is_public(uid string)bool{
+    return true
+
+}
+
+func (this *WxBot) is_special(uid string)bool{
+    return true
+
+}
+
+
 
 func (this *WxBot) do_request(url string) (string, []byte) {
     body, err := this.Get(url)
