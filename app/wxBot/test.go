@@ -17,6 +17,7 @@ import (
     "os"
     "io"
     "net/http/cookiejar"
+    "html"
 )
 
 func main() {
@@ -126,6 +127,7 @@ type WxGroupMember struct{
     Uin int
     UserName string
     NickName string
+    RemarkName string
     AttrStatus int
     PYInitial string
     PYQuanPin string
@@ -200,6 +202,25 @@ type WxMsgRecommendInfo struct {
 type WxMsgAppInfo struct {
     AppID string
     Type int
+}
+
+type WxTidyMsg struct{
+    MsgTypeId int
+    MsgId     string
+    Content   *WxTidyMsgContent
+    ToUserId  string
+    User      *WxTidyMsgUser
+}
+type WxTidyMsgUser struct{
+    Id string
+    Name string
+}
+type WxTidyMsgContent struct{
+    Type int
+    User *WxTidyMsgUser
+    Data string
+    Datail string
+    Desc string
 }
 
 type WxMe struct {
@@ -800,26 +821,26 @@ func (this *WxBot) handle_msg(r *WxSyncResponse){
 
     fmt.Printf(":::::::handle_msg dic:::::::::%+v\n",r)
     fmt.Printf(":::::::handle_msg msg:::::::::%+v\n",r.AddMsgList[0])
-    /*msg_type_id := 0
+    msg_type_id := 0
     for _,msg := range r.AddMsgList{
-        user := map[string]string{"id": msg.FromUserName, "name": "unknown"}
+        user := &WxTidyMsgUser{Id: msg.FromUserName, Name: "unknown"}
         switch{
-        case msg["MsgType"] == 51 && msg["StatusNotifyCode"] == 4:  // init message
+        case msg.MsgType == 51 && msg.StatusNotifyCode == 4:  // init message
             msg_type_id = 0
-            user["name"] = "system"
+            user.Name = "system"
             //会获取所有联系人的username 和 wxid，但是会收到3次这个消息，只取第一次
-            *//*if this.is_big_contact && len(this.full_user_name_list) == 0{
-            this.full_user_name_list = msg["StatusNotifyUserName"].split(",")
-            this.wxid_list = re.search(r"username&gt;(.*?)&lt;/username", msg["Content"]).group(1).split(",")
-            with open(os.path.join(this.temp_pwd,"UserName.txt"), "w") as f:
-            f.write(msg["StatusNotifyUserName"])
-            with open(os.path.join(this.temp_pwd,"wxid.txt"), "w") as f:
-            f.write(json.dumps(this.wxid_list))
-            fmt.Println("[INFO] Contact list is too big. Now start to fetch member list .")
-            this.get_big_contact()
-        }*//*
+            //if this.is_big_contact && len(this.full_user_name_list) == 0{
+            //this.full_user_name_list = msg["StatusNotifyUserName"].split(",")
+            //this.wxid_list = re.search(r"username&gt;(.*?)&lt;/username", msg["Content"]).group(1).split(",")
+            //with open(os.path.join(this.temp_pwd,"UserName.txt"), "w") as f:
+            //f.write(msg["StatusNotifyUserName"])
+            //with open(os.path.join(this.temp_pwd,"wxid.txt"), "w") as f:
+            //f.write(json.dumps(this.wxid_list))
+            //fmt.Println("[INFO] Contact list is too big. Now start to fetch member list .")
+            //this.get_big_contact()
+        //}
 
-        case msg["MsgType"] == 37:  // friend request
+        case msg.MsgType == 37:  // friend request
             msg_type_id = 37
         // content = msg["Content"]
         // username = content[content.index("fromusername="): content.index("encryptusername")]
@@ -829,55 +850,292 @@ func (this *WxBot) handle_msg(r *WxSyncResponse){
         // print u"       附加消息："+msg["RecommendInfo"]["Content"]
         // // print u"Ticket："+msg["RecommendInfo"]["Ticket"] // Ticket添加好友时要用
         // print u"       微信号："+username //未设置微信号的 腾讯会自动生成一段微信ID 但是无法通过搜索 搜索到此人
-        case msg["FromUserName"] == this.my_account["UserName"]:  // Self
+        case msg.FromUserName == this.my_account.UserName:  // Self
             msg_type_id = 1
-            user["name"] = "this.
-        case msg["ToUserName"] == "filehelper":  // File Helper
+            user.Name = "self"
+        case msg.ToUserName == "filehelper":  // File Helper
             msg_type_id = 2
-            user["name"] = "file_helper"
-        case msg["FromUserName"][:2] == "@@":  // Group
+            user.Name = "file_helper"
+        case msg.FromUserName[:2] == "@@":  // Group
             msg_type_id = 3
-            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+            user.Name = this.get_contact_prefer_name(this.get_contact_name(user.Id))
         case this.is_contact(msg.FromUserName):  // Contact
             msg_type_id = 4
-            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+            user.Name = this.get_contact_prefer_name(this.get_contact_name(user.Id))
         case this.is_public(msg.FromUserName):  // Public
             msg_type_id = 5
-            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+            user.Name = this.get_contact_prefer_name(this.get_contact_name(user.Id))
         case this.is_special(msg.FromUserName):  // Special
             msg_type_id = 6
-            user["name"] = this.get_contact_prefer_name(this.get_contact_name(user["id"]))
+            user.Name = this.get_contact_prefer_name(this.get_contact_name(user.Id))
         default:
             msg_type_id = 99
-            user["name"] = "unknown"
+            user.Name = "unknown"
         }
-        if len(user["name"])==0{
-            user["name"] = "unknown"
+        if len(user.Name)==0{
+            user.Name = "unknown"
         }
-        user["name"] = html.UnescapeString(user["name"])
+        user.Name = html.UnescapeString(user.Name)
 
         if this.DEBUG && msg_type_id != 0{
-            fmt.Printf("[MSG] %s:\n" , user["name"])
+            fmt.Printf("[MSG] %s:\n" , user.Name)
         }
         content := this.extract_msg_content(msg_type_id, msg)
-        message := map[string]interface{}{"msg_type_id": msg_type_id,
-            "msg_id": msg["MsgId"],
-            "content": content,
-            "to_user_id": msg["ToUserName"],
-            "user": user}
+        message := &WxTidyMsg{MsgTypeId: msg_type_id,
+            MsgId: msg.MsgId,
+            Content: content,
+            ToUserId: msg.ToUserName,
+            User: user}
         this.handle_msg_all(message)
-    }*/
+    }
 }
 
-func (this *WxBot) handle_msg_all(msg map[string]interface{}){
+func (this *WxBot) send_msg_by_uid(word, dst string)bool{
+    if len(dst) ==0{
+        dst ="filehelper"
+    }
+    urlStr := this.base_uri + fmt.Sprintf("/webwxsendmsg?pass_ticket=%s" , this.pass_ticket)
+    msg_id := strconv.Itoa(int(time.Now().Unix())) + strconv.Itoa(10000000000+rand.Intn(99999999999))[:5]
+    params := map[string]interface{}{
+        "BaseRequest": this.base_request,
+        "Msg": map[string]interface{}{
+            "Type": 1,
+            "Content": word,
+            "FromUserName": this.my_account.UserName,
+            "ToUserName": dst,
+            "LocalID": msg_id,
+            "ClientMsgId": msg_id,
+        },
+    }
+    headers := map[string]string{"content-type": "application/json; charset=UTF-8"}
+    data,_ := json.Marshal(params)
+    body, err := this.Post(urlStr, headers["content-type"], string(data))
+    if err != nil{
+        fmt.Println(":::::send_msg_by_uid post err::::::",string(body))
+        return false
+    }
+    dic,_ := simplejson.NewJson(body)
+    ret,_ := dic.GetPath("BaseResponse/Ret").Int()
+    return ret == 0
+}
+
+func (this *WxBot) handle_msg_all(msg *WxTidyMsg){
+    fmt.Printf(":::::handle_msg_all msg::::::%+v\n",msg)
+    fmt.Printf(":::::handle_msg_all msg content::::::%+v\n",msg.Content)
+    fmt.Printf(":::::handle_msg_all msg User::::::%+v\n",msg.User)
+    if (msg.MsgTypeId == 3 || msg.MsgTypeId == 4) && msg.Content.Type == 0{
+        //this.send_msg_by_uid(u"hi", msg.user.id)
+    //this.send_img_msg_by_uid("img/1.png", msg.user.id)
+    //this.send_file_msg_by_uid("img/1.png", msg.user.id)
+    msgSend := ""
+    if msg.Content.Data=="签到"{
+        msgSend = fmt.Sprintf("@%s 您已签到from golang" , msg.Content.User.Name)
+    }
+    if msg.Content.Data == "测试"{
+        msgSend =fmt.Sprintf("@%s hello world from golang" , msg.Content.User.Name)
+    }
+    fmt.Printf( "msg will send: [%s]", msgSend)
+    if len(msgSend) > 0 {
+        this.send_msg_by_uid(msgSend, msg.User.Id)
+    }
+}
 
 }
 func (this *WxBot) schedule(){
 
 }
+/**
+content_type_id:
+            0 -> Text
+            1 -> Location
+            3 -> Image
+            4 -> Voice
+            5 -> Recommend
+            6 -> Animation
+            7 -> Share
+            8 -> Video
+            9 -> VideoCall
+            10 -> Redraw
+            11 -> Empty
+            99 -> Unknown
+ */
+func (this *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgContent{
+    mtype := msg.MsgType
+    content := html.UnescapeString(msg.Content)
+    //msg_id := msg.MsgId
 
-func (this *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) string{
-    return ""
+    msg_content := &WxTidyMsgContent{}
+    switch{
+    case msg_type_id == 0:
+        return &WxTidyMsgContent{Type: 11, Data: ""}
+    case msg_type_id == 2:  // File Helper
+        return &WxTidyMsgContent{Type: 0, Data: strings.Replace(content,"<br/>", "\n",-1)}
+    case msg_type_id == 3:  // 群聊
+        sp := strings.Index(content,"<br/>")
+        uid := content[:sp]
+        content := content[sp:]
+        content = strings.Replace(content,"<br/>", "", -1)
+        uid = uid[:len(uid)-2]
+        name := this.get_contact_prefer_name(this.get_contact_name(uid))
+        if len(name) == 0 {
+            name = this.get_group_member_prefer_name(this.get_group_member_name(msg.FromUserName, uid))
+        }
+        if len(name) == 0 {
+            name = "unknown"
+        }
+        msg_content.User = &WxTidyMsgUser{Id: uid, Name: name}
+    default:  // Self, Contact, Special, Public, Unknown
+
+    }
+    msg_prefix :=  ":"
+    if msg_content.User != nil{
+        msg_prefix = msg_content.User.Name + msg_prefix
+    }
+    switch{
+    case mtype == 1:
+            if strings.Index(content,"http://weixin.qq.com/cgi-bin/redirectforward?args=") != -1{
+                /*body,_ := this.Get(content)
+                r.encoding = "gbk"
+                data = r.text
+                pos = this.search_content("title", data, "xml")
+                msg_content.Type = 1
+                msg_content.data = pos
+                msg_content.detail = data
+                if this.DEBUG{
+                    fmt.Printf("    %s[Location] %s \n", (msg_prefix, pos)
+                }*/
+            }else{
+                    msg_content.Type = 0
+                    if msg_type_id == 3 || (msg_type_id == 1 && msg.ToUserName[:2] == "@@"){  // Group text message
+                    msg_infos := this.proc_at_info(content)
+                    str_msg_all := msg_infos[0]
+                    str_msg := msg_infos[1]
+                    detail := msg_infos[2]
+                    msg_content.Data = str_msg_all
+                    msg_content.Datail = detail
+                    msg_content.Desc = str_msg
+                    }else {
+                        msg_content.Data = content
+                    }
+            }
+            if this.DEBUG{
+                //try:
+                fmt.Printf("    %s[Text] %s\n", msg_prefix, msg_content.Data)
+                //except UnicodeEncodeError:
+                //fmt.Printf("    %s[Text] (illegal text).\n", msg_prefix)
+            }
+    /*case mtype == 3:
+        msg_content.type = 3
+        msg_content.data = this.get_msg_img_url(msg_id)
+        msg_content.img = this.session.get(msg_content.data).content.encode("hex")
+        if this.DEBUG{
+            image = this.get_msg_img(msg_id)
+            fmt.Printf("    %s[Image] %s\n", (msg_prefix, image)
+    case mtype == 34:
+        msg_content.type = 4
+        msg_content.data = this.get_voice_url(msg_id)
+        msg_content.voice = this.session.get(msg_content.data).content.encode("hex")
+        if this.DEBUG{
+            voice = this.get_voice(msg_id)
+            fmt.Printf("    %s[Voice] %s\n", (msg_prefix, voice)
+        }
+    case mtype == 37:
+        msg_content.type = 37
+        msg_content.data = msg.RecommendInfo
+        if this.DEBUG{
+            fmt.Printf("    %s[useradd] %s\n", (msg_prefix,msg.RecommendInfo["NickName"])
+        }
+    case mtype == 42:
+        msg_content.type = 5
+        info = msg.RecommendInfo
+        msg_content.data = {"nickname": info["NickName"],
+    "alias": info["Alias"],
+    "province": info["Province"],
+    "city": info["City"],
+    "gender": ["unknown", "male", "female"][info["Sex"]]}
+        if this.DEBUG{
+            fmt.Printf("    %s[Recommend]\n", msg_prefix
+            fmt.Printf("    -----------------------------\n")
+            fmt.Printf("    | NickName: %s\n", info["NickName"]
+            fmt.Printf("    | Alias: %s\n", info["Alias"]
+            fmt.Printf("    | Local: %s %s\n", (info["Province"], info["City"])
+            fmt.Printf("    | Gender: %s\n", ["unknown", "male", "female"][info["Sex"]]
+            fmt.Printf("    -----------------------------\n")
+        }
+    case mtype == 47:
+        msg_content.type = 6
+        msg_content.data = this.search_content("cdnurl", content)
+        if this.DEBUG{
+            fmt.Printf("    %s[Animation] %s\n", (msg_prefix, msg_content.data)
+        }
+    case mtype == 49:
+        msg_content.type = 7
+        switch{
+        case msg.AppMsgType == 3:
+            app_msg_type = "music"
+        case msg.AppMsgType == 5:
+            app_msg_type = "link"
+        case msg.AppMsgType == 7:
+            app_msg_type = "weibo"
+            d:
+            app_msg_type = "unknown"
+        }
+        msg_content.data = {"type": app_msg_type,
+    "title": msg.FileName,
+    "desc": this.search_content("des", content, "xml"),
+    "url": msg.Url,
+    "from": this.search_content("appname", content, "xml"),
+    "content": msg.get("Content")  // 有的公众号会发一次性3 4条链接一个大图,如果只url那只能获取第一条,content里面有所有的链接
+    }
+        if this.DEBUG{
+            fmt.Printf("    %s[Share] %s\n", (msg_prefix, app_msg_type)
+            fmt.Printf("    --------------------------\n")
+            fmt.Printf("    | title: %s\n", msg.FileName
+            fmt.Printf("    | desc: %s\n", this.search_content("des", content, "xml")
+            fmt.Printf("    | link: %s\n", msg.Url
+            fmt.Printf("    | from: %s\n", this.search_content("appname", content, "xml")
+            fmt.Printf("    | content: %s\n", (msg.get("content")[:20] if msg.get("content") else "unknown")
+            fmt.Printf("    --------------------------\n")
+        }
+*/
+    case mtype == 62:
+        msg_content.Type = 8
+        msg_content.Data = content
+        if this.DEBUG{
+            fmt.Printf("    %s[Video] Please check on mobiles\n", msg_prefix)
+        }
+    case mtype == 53:
+        msg_content.Type = 9
+        msg_content.Data = content
+        if this.DEBUG{
+            fmt.Printf("    %s[Video Call]\n", msg_prefix)
+        }
+    case mtype == 10002:
+        msg_content.Type = 10
+        msg_content.Data = content
+        if this.DEBUG{
+            fmt.Printf("    %s[Redraw]\n", msg_prefix)
+        }
+    case mtype == 10000:  // unknown, maybe red packet, or group invite
+        msg_content.Type = 12
+        msg_content.Data = msg.Content
+        if this.DEBUG{
+            fmt.Printf("    [Unknown]\n")
+        }
+    case mtype == 43:
+        msg_content.Type = 13
+        msg_content.Data = ""//this.get_video_url(msg_id)
+        if this.DEBUG{
+            fmt.Printf("    %s[video] %s\n", msg_prefix, msg_content.Data)
+        }
+    default:
+        msg_content.Type = 99
+        msg_content.Data = content
+        if this.DEBUG{
+            fmt.Printf("    %s[Unknown]\n", msg_prefix)
+        }
+    }
+    return msg_content
 }
 
 func (this *WxBot) get_contact_name(name string) string{
@@ -885,8 +1143,8 @@ func (this *WxBot) get_contact_name(name string) string{
     return ""
 }
 
-func (this *WxBot) get_contact_prefer_name(uid string){
-
+func (this *WxBot) get_contact_prefer_name(uid string)string{
+    return ""
 }
 
 func (this *WxBot) is_contact(uid string)bool{
@@ -901,6 +1159,89 @@ func (this *WxBot) is_public(uid string)bool{
 func (this *WxBot) is_special(uid string)bool{
     return true
 
+}
+
+func (this *WxBot) get_group_member_prefer_name(name map[string]string)string{
+    if name == nil{
+        return ""
+    }
+    if v,ok := name["remark_name"]; ok{
+        return v
+    }
+    if v,ok := name["display_name"]; ok{
+        return v
+    }
+    if v,ok := name["nickname"]; ok{
+        return v
+    }
+    return ""
+}
+
+func (this *WxBot) get_group_member_name(gid, uid string)map[string]string{
+    if _,ok :=this.group_members[gid];!ok{
+        return nil
+    }
+    group := this.group_members[gid]
+    for _,member := range group{
+        if member.UserName == uid{
+            names := map[string]string{}
+            if len(member.RemarkName) > 0 {
+                names["remark_name"] = member.RemarkName
+            }
+            if len(member.NickName) > 0 {
+                names["nickname"] = member.NickName
+            }
+            if len(member.DisplayName) > 0 {
+                names["display_name"] = member.DisplayName
+            }
+            return names
+        }
+    }
+    return nil
+}
+
+func (this *WxBot) proc_at_info(msg string)(string,[]map[string]string){
+    if len(msg) < 0{
+        return "", []map[string]string{}
+    }
+    segs := strings.Split(msg,"\u2005")
+    str_msg_all := ""
+    str_msg := ""
+    infos := []map[string]string{}
+    if len(segs) > 1{
+        for i:=0;i<len(segs);i++{
+        segs[i] += "\u2005"
+            re,_ := regexp.Compile("@.*?\u2005")
+        pm := re.FindSubmatch([]byte(segs[i]))
+        if len(pm) > 0{
+        name := pm[1:-1]
+        str := strings.Replace(segs[i],pm, "",-1)
+        str_msg_all += str + "@" + name + " "
+        str_msg += str
+        if len(str) > 0 {
+            infos = append(infos,
+            map[string]string{
+                "type": "str", "value": str,
+            })
+            infos = append(infos,
+            map[string]string{
+                "type": "at", "value": name,
+            })
+        }
+        }else{
+        infos=append(infos, map[string]string{"type": "str", "value": segs[i]})
+        str_msg_all += segs[i]
+        str_msg += segs[i]
+        }
+        str_msg_all += segs[-1]
+        str_msg += segs[-1]
+        infos=append(infos, map[string]string{"type": "str", "value": segs[-1]})
+        }else{
+        infos=append(infos, map[string]string{"type": "str", "value": segs[-1]})
+        str_msg_all = msg
+        str_msg = msg
+    }
+    return strings.Replace(str_msg_all,"\u2005", "",-1), strings.Replace(str_msg,"\u2005", "", -1), infos
 }
 
 
