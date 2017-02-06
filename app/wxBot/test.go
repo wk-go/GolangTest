@@ -88,10 +88,12 @@ type WxUser struct {
     KeyWord          string
     EncryChatRoomId  string
     IsOwner          int
+    MemberStatus     int
 }
 type WxUserInfo struct {
     Type string
     Info *WxUser
+    Group string
 }
 type WxGroup struct{
     Uin int
@@ -620,11 +622,29 @@ func (self *WxBot) get_contact() bool{
 
     self.batch_get_group_members()
 
-    /*    for group in self.group_members:
-            for member in self.group_members[group]:
-                if member["UserName"] not in self.account_info:
-                    self.account_info["group_member"][member["UserName"]] = {"type": "group_member", "info": member, "group": group}
+    for group,_ := range self.group_members{
+    for _,member := range self.group_members[group]{
+        if _,ok := self.account_info[member.UserName]; ok{
+            self.account_info["group_member"][member.UserName] = &WxUserInfo{Type: "group_member", Info:
+            &WxUser{
+                Uin:member.Uin,
+                UserName:member.UserName,
+                NickName:member.NickName,
+                RemarkName:member.RemarkName,
+                AttrStatus:member.AttrStatus,
+                PYInitial:member.PYInitial,
+                PYQuanPin:member.PYQuanPin,
+                RemarkPYInitial:member.RemarkPYInitial,
+                RemarkPYQuanPin:member.RemarkPYQuanPin,
+                MemberStatus:member.MemberStatus,
+                DisplayName:member.DisplayName,
+                KeyWord:member.KeyWord,
+            }, Group: group}
+        }
+    }
+}
 
+/*
         if self.DEBUG{
         with open(os.path.join(self.temp_pwd, "contact_list.json"), "w") as f:
         f.write(json.dumps(self.contact_list))
