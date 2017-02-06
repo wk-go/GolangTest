@@ -995,10 +995,18 @@ func (self *WxBot) handle_msg_all(msg *WxTidyMsg){
     //self.send_file_msg_by_uid("img/1.png", msg.user.id)
     msgSend := ""
     if msg.Content.Data=="签到"{
-        msgSend = fmt.Sprintf("@%s 您已签到from golang\n" , msg.Content.User.Name)
+        if msg.MsgTypeId == 3 {
+            msgSend = fmt.Sprintf("@%s 您已签到from golang\n", msg.Content.User.Name)
+        }else{
+            msgSend = fmt.Sprintf("您已签到from golang\n")
+        }
     }
     if msg.Content.Data == "测试"{
-        msgSend = fmt.Sprintf("@%s hello world from golang\n" , msg.Content.User.Name)
+        if msg.MsgTypeId == 3 {
+            msgSend = fmt.Sprintf("@%s hello world from golang\n" , msg.Content.User.Name)
+        }else{
+            msgSend = fmt.Sprintf("hello world from golang\n")
+        }
     }
     fmt.Printf( "msg will send: [%s]\n", msgSend)
     if len(msgSend) > 0 {
