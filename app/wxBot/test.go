@@ -567,7 +567,7 @@ func (self *WxBot) get_contact() bool{
     }
     fmt.Printf(":::body:::%+v\n",string(body))
     if self.DEBUG {
-        if f,err := os.OpenFile(self.temp_pwd+"/contacts.json",os.O_RDWR,os.ModePerm); err == nil{
+        if f,err := os.OpenFile(self.temp_pwd+"/contacts.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
             defer f.Close()
             f.Write(body)
         }else{
@@ -646,23 +646,58 @@ func (self *WxBot) get_contact() bool{
     }
 }
 
-/*
+
         if self.DEBUG{
-        with open(os.path.join(self.temp_pwd, "contact_list.json"), "w") as f:
-        f.write(json.dumps(self.contact_list))
-        with open(os.path.join(self.temp_pwd, "special_list.json"), "w") as f:
-        f.write(json.dumps(self.special_list))
-        with open(os.path.join(self.temp_pwd, "group_list.json"), "w") as f:
-        f.write(json.dumps(self.group_list))
-        with open(os.path.join(self.temp_pwd, "public_list.json"), "w") as f:
-        f.write(json.dumps(self.public_list))
-        with open(os.path.join(self.temp_pwd, "member_list.json"), "w") as f:
-        f.write(json.dumps(self.member_list))
-        with open(os.path.join(self.temp_pwd, "group_users.json"), "w") as f:
-        f.write(json.dumps(self.group_members))
-        with open(os.path.join(self.temp_pwd, "account_info.json"), "w") as f:
-        f.write(json.dumps(self.account_info))
-    }*/
+            if f,err := os.OpenFile(self.temp_pwd+"/contact_list.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+                defer f.Close()
+                body, _ := json.Marshal(self.contact_list)
+                f.Write(body)
+            }else{
+                fmt.Println(":::file err:::", err)
+            }
+            if f,err := os.OpenFile(self.temp_pwd+"/special_list.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+                defer f.Close()
+                body, _ := json.Marshal(self.special_list)
+                f.Write(body)
+            }else{
+                fmt.Println(":::file err:::", err)
+            }
+            if f,err := os.OpenFile(self.temp_pwd+"/group_list.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+                defer f.Close()
+                body, _ := json.Marshal(self.group_list)
+                f.Write(body)
+            }else{
+                fmt.Println(":::file err:::", err)
+            }
+            if f,err := os.OpenFile(self.temp_pwd+"/public_list.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+                defer f.Close()
+                body, _ := json.Marshal(self.public_list)
+                f.Write(body)
+            }else{
+                fmt.Println(":::file err:::", err)
+            }
+            if f,err := os.OpenFile(self.temp_pwd+"/member_list.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+                defer f.Close()
+                body, _ := json.Marshal(self.member_list)
+                f.Write(body)
+            }else{
+                fmt.Println(":::file err:::", err)
+            }
+            if f,err := os.OpenFile(self.temp_pwd+"/group_users.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+                defer f.Close()
+                body, _ := json.Marshal(self.group_members)
+                f.Write(body)
+            }else{
+                fmt.Println(":::file err:::", err)
+            }
+            if f,err := os.OpenFile(self.temp_pwd+"/account_info.json",os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+                defer f.Close()
+                body, _ := json.Marshal(self.account_info)
+                f.Write(body)
+            }else{
+                fmt.Println(":::file err:::", err)
+            }
+    }
     return true
 }
 
