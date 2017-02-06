@@ -88,6 +88,8 @@ type WxUser struct {
     KeyWord          string
     EncryChatRoomId  string
     IsOwner          int
+
+    //from group user
     MemberStatus     int
 }
 type WxUserInfo struct {
