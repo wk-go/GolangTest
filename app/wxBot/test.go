@@ -1041,9 +1041,11 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
         sp := strings.Index(content,"<br/>")
         fmt.Println("::::extract_msg_content sp:::::",sp)
         uid := content[:sp]
+        fmt.Println(":::::uid:::::",uid)
         content = content[sp:]
         content = strings.Replace(content,"<br/>", "", -1)
-        uid = uid[:len(uid)-2]
+        uid = uid[:len(uid)-1]
+        fmt.Println(":::::uid:::::",uid)
         name := self.get_contact_prefer_name(self.get_contact_name(uid))
         if len(name) == 0 {
             name = self.get_group_member_prefer_name(self.get_group_member_name(msg.FromUserName, uid))
