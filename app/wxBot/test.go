@@ -624,9 +624,9 @@ func (self *WxBot) get_contact() bool{
 
     self.batch_get_group_members()
 
-    for group,_ := range self.group_members{
-    for _,member := range self.group_members[group]{
-        if _,ok := self.account_info[member.UserName]; ok{
+    for group,members := range self.group_members{
+    for _,member := range members{
+        if _,ok := self.account_info["group_member"][member.UserName]; !ok{
             self.account_info["group_member"][member.UserName] = &WxUserInfo{Type: "group_member", Info:
             &WxUser{
                 Uin:member.Uin,
