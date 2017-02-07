@@ -224,12 +224,13 @@ type WxTidyMsgUser struct{
     Name string
 }
 type WxTidyMsgContent struct{
-    Type int
-    User *WxTidyMsgUser
-    Data string
+    Type   int
+    User   *WxTidyMsgUser
+    Data   string
     Datail []map[string]string
-    Desc string
-    Img []byte
+    Desc   string
+    Img    []byte
+    Voice  []byte
 }
 
 type WxMe struct {
@@ -311,15 +312,18 @@ func NewWxBot() *WxBot{
 }
 
 func (self *WxBot) Get(urlStr string) ([]byte, error) {
-    return self.Do("GET",urlStr, nil,"")
+    return self.Do("GET",urlStr, nil,"",nil)
+}
+func (self *WxBot) GetHeader(urlStr string,header map[string]string) ([]byte, error) {
+    return self.Do("GET",urlStr, nil,"",header)
 }
 func (self *WxBot) Post(urlStr, bodyType, body string)([]byte, error){
-    return self.Do("POST",urlStr, strings.NewReader(body),bodyType)
+    return self.Do("POST",urlStr, strings.NewReader(body),bodyType,nil)
 }
 func (self *WxBot) PostForm(url string, data url.Values) ([]byte, error) {
     return self.Post(url, "application/x-www-form-urlencoded", data.Encode())
 }
-func (self *WxBot) Do(method, urlStr string, body io.Reader, bodyType string) ([]byte,error){
+func (self *WxBot) Do(method, urlStr string, body io.Reader, bodyType string,header map[string]string) ([]byte,error){
     req, err := http.NewRequest(method, urlStr, body)
     if err != nil {
         return nil, err
@@ -329,6 +333,11 @@ func (self *WxBot) Do(method, urlStr string, body io.Reader, bodyType string) ([
             bodyType = "application/x-www-form-urlencoded"
         }
         req.Header.Set("Content-Type", bodyType)
+    }
+    if header != nil && len(header) > 0 {
+        for k,v := range header {
+            req.Header.Set(k,v)
+        }
     }
     req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5")
 
@@ -1118,73 +1127,74 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
             image := self.get_msg_img(msg_id)
             fmt.Printf("    %s[Image] %s\n", msg_prefix, image)
         }
-    /*case mtype == 34:
+   case mtype == 34:
         msg_content.Type = 4
         msg_content.Data = self.get_voice_url(msg_id)
-        msg_content.voice = self.session.get(msg_content.data).content.encode("hex")
+       body,_ := self.Get(msg_content.Data)
+        msg_content.Voice = body
         if self.DEBUG{
-            voice = self.get_voice(msg_id)
-            fmt.Printf("    %s[Voice] %s\n", (msg_prefix, voice)
+            voice := self.get_voice(msg_id)
+            fmt.Printf("    %s[Voice] %s\n", msg_prefix, voice)
         }
-    case mtype == 37:
-        msg_content.Type = 37
-        msg_content.Data = msg.RecommendInfo
-        if self.DEBUG{
-            fmt.Printf("    %s[useradd] %s\n", (msg_prefix,msg.RecommendInfo["NickName"])
-        }
-    case mtype == 42:
-        msg_content.Type = 5
-        info := msg.RecommendInfo
-        msg_content.Data = map[string]string{"nickname": info["NickName"],
-    "alias": info["Alias"],
-    "province": info["Province"],
-    "city": info["City"],
-    "gender": ["unknown", "male", "female"][info["Sex"]]}
-        if self.DEBUG{
-            fmt.Printf("    %s[Recommend]\n", msg_prefix
-            fmt.Printf("    -----------------------------\n")
-            fmt.Printf("    | NickName: %s\n", info["NickName"]
-            fmt.Printf("    | Alias: %s\n", info["Alias"]
-            fmt.Printf("    | Local: %s %s\n", (info["Province"], info["City"])
-            fmt.Printf("    | Gender: %s\n", ["unknown", "male", "female"][info["Sex"]]
-            fmt.Printf("    -----------------------------\n")
-        }
-    case mtype == 47:
-        msg_content.Type = 6
-        msg_content.data = self.search_content("cdnurl", content)
-        if self.DEBUG{
-            fmt.Printf("    %s[Animation] %s\n", (msg_prefix, msg_content.data)
-        }
-    case mtype == 49:
-        msg_content.Type = 7
-        app_msg_type := ""
-        switch{
-        case msg.AppMsgType == 3:
-            app_msg_type = "music"
-        case msg.AppMsgType == 5:
-            app_msg_type = "link"
-        case msg.AppMsgType == 7:
-            app_msg_type = "weibo"
-        default:
-            app_msg_type = "unknown"
-        }
-        msg_content.Data = {"type": app_msg_type,
-    "title": msg.FileName,
-    "desc": self.search_content("des", content, "xml"),
-    "url": msg.Url,
-    "from": self.search_content("appname", content, "xml"),
-    "content": msg.get("Content")  // 有的公众号会发一次性3 4条链接一个大图,如果只url那只能获取第一条,content里面有所有的链接
-    }
-        if self.DEBUG{
-            fmt.Printf("    %s[Share] %s\n", msg_prefix, app_msg_type)
-            fmt.Printf("    --------------------------\n")
-            fmt.Printf("    | title: %s\n", msg.FileName
-            fmt.Printf("    | desc: %s\n", self.search_content("des", content, "xml")
-            fmt.Printf("    | link: %s\n", msg.Url
-            fmt.Printf("    | from: %s\n", self.search_content("appname", content, "xml")
-            fmt.Printf("    | content: %s\n", (msg.get("content")[:20] if msg.get("content") else "unknown")
-            fmt.Printf("    --------------------------\n")
-        }*/
+    /*case mtype == 37:
+       msg_content.Type = 37
+       msg_content.Data = msg.RecommendInfo
+       if self.DEBUG{
+           fmt.Printf("    %s[useradd] %s\n", (msg_prefix,msg.RecommendInfo["NickName"])
+       }
+   casetype == 42:
+       msg_content.Type = 5
+       info := msg.RecommendInfo
+       msg_content.Data = map[string]string{"nickname": info["NickName"],
+   "alias": info["Alias"],
+   "province": info["Province"],
+   "city": info["City"],
+   "gender": ["unknown", "male", "female"][info["Sex"]]}
+       if self.DEBUG{
+           fmt.Printf("    %s[Recommend]\n", msg_prefix
+           fmt.Printf("    -----------------------------\n")
+           fmt.Printf("    | NickName: %s\n", info["NickName"]
+           fmt.Printf("    | Alias: %s\n", info["Alias"]
+           fmt.Printf("    | Local: %s %s\n", (info["Province"], info["City"])
+           fmt.Printf("    | Gender: %s\n", ["unknown", "male", "female"][info["Sex"]]
+           fmt.Printf("    -----------------------------\n")
+       }
+   case mtype == 47:
+       msg_content.Type = 6
+       msg_content.data = self.search_content("cdnurl", content)
+       if self.DEBUG{
+           fmt.Printf("    %s[Animation] %s\n", (msg_prefix, msg_content.data)
+       }
+   case mtype == 49:
+       msg_content.Type = 7
+       app_msg_type := ""
+       switch{
+       case msg.AppMsgType == 3:
+           app_msg_type = "music"
+       case msg.AppMsgType == 5:
+           app_msg_type = "link"
+       case msg.AppMsgType == 7:
+           app_msg_type = "weibo"
+       default:
+           app_msg_type = "unknown"
+       }
+       msg_content.Data = {"type": app_msg_type,
+   "title": msg.FileName,
+   "desc": self.search_content("des", content, "xml"),
+   "url": msg.Url,
+   "from": self.search_content("appname", content, "xml"),
+   "content": msg.get("Content")  // 有的公众号会发一次性3 4条链接一个大图,如果只url那只能获取第一条,content里面有所有的链接
+   }
+       if self.DEBUG{
+           fmt.Printf("    %s[Share] %s\n", msg_prefix, app_msg_type)
+           fmt.Printf("    --------------------------\n")
+           fmt.Printf("    | title: %s\n", msg.FileName
+           fmt.Printf("    | desc: %s\n", self.search_content("des", content, "xml")
+           fmt.Printf("    | link: %s\n", msg.Url
+           fmt.Printf("    | from: %s\n", self.search_content("appname", content, "xml")
+           fmt.Printf("    | content: %s\n", (msg.get("content")[:20] if msg.get("content") else "unknown")
+           fmt.Printf("    --------------------------\n")
+       }*/
     case mtype == 62:
         msg_content.Type = 8
         msg_content.Data = content
@@ -1211,8 +1221,9 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
         }
     case mtype == 43:
         msg_content.Type = 13
-        msg_content.Data = ""//self.get_video_url(msg_id)
+        msg_content.Data = self.get_video_url(msg_id)
         if self.DEBUG{
+            self.get_video(msg_id)
             fmt.Printf("    %s[video] %s\n", msg_prefix, msg_content.Data)
         }
     default:
@@ -1393,6 +1404,57 @@ func (self *WxBot) get_msg_img(msgid string) string {
     fn := "img_" + msgid + ".jpg"
     if err != nil {
         fmt.Printf("::::get_msg_img err :::::%v  :::::: msgid::::::%v" , err,fn)
+        return ""
+    }
+    if f,err := os.OpenFile(self.temp_pwd+"/"+fn,os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+        defer f.Close()
+        f.Write(body)
+    }else{
+        fmt.Println(":::file err:::", err)
+    }
+    return fn
+}
+
+func (self *WxBot) get_voice_url(msgid string)string{
+    return fmt.Sprintf(self.base_uri + "/webwxgetvoice?msgid=%s&skey=%s", msgid, self.skey)
+}
+/**
+    获取语音消息，下载语音到本地
+    :param msgid: 语音消息id
+    :return: 保存的本地语音文件路径
+ */
+func (self *WxBot) get_voice(msgid string)string{
+    urlStr := self.get_voice_url(msgid)
+    fn := "voice_" + msgid + ".mp3"
+    body,err := self.Get(urlStr)
+    if err != nil {
+        fmt.Printf("::::get_voice err :::::%v  :::::: msgid::::::%v" , err,fn)
+        return ""
+    }
+    if f,err := os.OpenFile(self.temp_pwd+"/"+fn,os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+        defer f.Close()
+        f.Write(body)
+    }else{
+        fmt.Println(":::file err:::", err)
+    }
+    return fn
+}
+
+func (self *WxBot) get_video_url(msgid string)string{
+    return fmt.Sprintf(self.base_uri + "/webwxgetvideo?msgid=%s&skey=%s", msgid, self.skey)
+}
+/**
+    获取视频消息，下载视频到本地
+    :param msgid: 视频消息id
+    :return: 保存的本地视频文件路径
+ */
+func (self *WxBot) get_video(msgid string)string{
+    urlStr := self.get_video_url(msgid)
+    headers := map[string]string{"Range": "bytes=0-"}
+    fn := "video_" + msgid + ".mp4"
+    body,err := self.GetHeader(urlStr,headers)
+    if err != nil {
+        fmt.Printf("::::get_video err :::::%v  :::::: msgid::::::%v" , err,fn)
         return ""
     }
     if f,err := os.OpenFile(self.temp_pwd+"/"+fn,os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
