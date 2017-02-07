@@ -1260,17 +1260,30 @@ func (self *WxBot) get_contact_prefer_name(name map[string]string)string{
 }
 
 func (self *WxBot) is_contact(uid string)bool{
-    return true
+    for _,account := range self.contact_list {
+        if uid == account.UserName {
+            return true
+        }
+    }
+    return false
 }
 
 func (self *WxBot) is_public(uid string)bool{
-    return true
-
+    for _,account := range self.public_list {
+        if uid == account.UserName {
+            return true
+        }
+    }
+    return false
 }
 
 func (self *WxBot) is_special(uid string)bool{
-    return true
-
+    for _,account := range self.special_list {
+        if uid == account.UserName {
+            return true
+        }
+    }
+    return false
 }
 
 func (self *WxBot) get_group_member_prefer_name(name map[string]string)string{
