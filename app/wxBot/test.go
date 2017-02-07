@@ -229,6 +229,7 @@ type WxTidyMsgContent struct{
     Data string
     Datail []map[string]string
     Desc string
+    Img []byte
 }
 
 type WxMe struct {
@@ -1037,7 +1038,7 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
     fmt.Println(":::::extract_msg_content msg_type_id:::::",msg_type_id)
     mtype := msg.MsgType
     content := html.UnescapeString(msg.Content)
-    //msg_id := msg.MsgId
+    msg_id := msg.MsgId
 
     msg_content := &WxTidyMsgContent{}
     switch{
@@ -1107,31 +1108,34 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
                 //except UnicodeEncodeError:
                 //fmt.Printf("    %s[Text] (illegal text).\n", msg_prefix)
             }
-    /*case mtype == 3:
-        msg_content.type = 3
-        msg_content.data = self.get_msg_img_url(msg_id)
-        msg_content.img = self.session.get(msg_content.data).content.encode("hex")
-        if self.DEBUG{
-            image = self.get_msg_img(msg_id)
-            fmt.Printf("    %s[Image] %s\n", (msg_prefix, image)
-    case mtype == 34:
-        msg_content.type = 4
-        msg_content.data = self.get_voice_url(msg_id)
+    case mtype == 3:
+        msg_content.Type = 3
+        msg_content.Data = self.get_msg_img_url(msg_id)
+        body,_ := self.Get(msg_content.Data)
+        fmt.Println("::::::extract_msg_content type 3  body:::::",string(body))
+        msg_content.Img = body
+        if self.DEBUG {
+            image := self.get_msg_img(msg_id)
+            fmt.Printf("    %s[Image] %s\n", msg_prefix, image)
+        }
+    /*case mtype == 34:
+        msg_content.Type = 4
+        msg_content.Data = self.get_voice_url(msg_id)
         msg_content.voice = self.session.get(msg_content.data).content.encode("hex")
         if self.DEBUG{
             voice = self.get_voice(msg_id)
             fmt.Printf("    %s[Voice] %s\n", (msg_prefix, voice)
         }
     case mtype == 37:
-        msg_content.type = 37
-        msg_content.data = msg.RecommendInfo
+        msg_content.Type = 37
+        msg_content.Data = msg.RecommendInfo
         if self.DEBUG{
             fmt.Printf("    %s[useradd] %s\n", (msg_prefix,msg.RecommendInfo["NickName"])
         }
     case mtype == 42:
-        msg_content.type = 5
-        info = msg.RecommendInfo
-        msg_content.data = {"nickname": info["NickName"],
+        msg_content.Type = 5
+        info := msg.RecommendInfo
+        msg_content.Data = map[string]string{"nickname": info["NickName"],
     "alias": info["Alias"],
     "province": info["Province"],
     "city": info["City"],
@@ -1146,13 +1150,14 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
             fmt.Printf("    -----------------------------\n")
         }
     case mtype == 47:
-        msg_content.type = 6
+        msg_content.Type = 6
         msg_content.data = self.search_content("cdnurl", content)
         if self.DEBUG{
             fmt.Printf("    %s[Animation] %s\n", (msg_prefix, msg_content.data)
         }
     case mtype == 49:
-        msg_content.type = 7
+        msg_content.Type = 7
+        app_msg_type := ""
         switch{
         case msg.AppMsgType == 3:
             app_msg_type = "music"
@@ -1160,10 +1165,10 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
             app_msg_type = "link"
         case msg.AppMsgType == 7:
             app_msg_type = "weibo"
-            d:
+        default:
             app_msg_type = "unknown"
         }
-        msg_content.data = {"type": app_msg_type,
+        msg_content.Data = {"type": app_msg_type,
     "title": msg.FileName,
     "desc": self.search_content("des", content, "xml"),
     "url": msg.Url,
@@ -1171,7 +1176,7 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
     "content": msg.get("Content")  // 有的公众号会发一次性3 4条链接一个大图,如果只url那只能获取第一条,content里面有所有的链接
     }
         if self.DEBUG{
-            fmt.Printf("    %s[Share] %s\n", (msg_prefix, app_msg_type)
+            fmt.Printf("    %s[Share] %s\n", msg_prefix, app_msg_type)
             fmt.Printf("    --------------------------\n")
             fmt.Printf("    | title: %s\n", msg.FileName
             fmt.Printf("    | desc: %s\n", self.search_content("des", content, "xml")
@@ -1179,8 +1184,7 @@ func (self *WxBot) extract_msg_content(msg_type_id int, msg *WxMsg) *WxTidyMsgCo
             fmt.Printf("    | from: %s\n", self.search_content("appname", content, "xml")
             fmt.Printf("    | content: %s\n", (msg.get("content")[:20] if msg.get("content") else "unknown")
             fmt.Printf("    --------------------------\n")
-        }
-*/
+        }*/
     case mtype == 62:
         msg_content.Type = 8
         msg_content.Data = content
@@ -1372,6 +1376,32 @@ func (self *WxBot) proc_at_info(msg string)(string, string, []map[string]string)
         str_msg = msg
     }
     return strings.Replace(str_msg_all,"\u2005", "",-1), strings.Replace(str_msg,"\u2005", "", -1), infos
+}
+
+func (self *WxBot) get_msg_img_url(msgid string) string {
+    return fmt.Sprintf(self.base_uri + "/webwxgetmsgimg?MsgID=%s&skey=%s", msgid, self.skey)
+}
+
+/*
+获取图片消息，下载图片到本地
+:param msgid: 消息id
+:return: 保存的本地图片文件路径
+*/
+func (self *WxBot) get_msg_img(msgid string) string {
+    url := self.get_msg_img_url(msgid)
+    body,err := self.Get(url)
+    fn := "img_" + msgid + ".jpg"
+    if err != nil {
+        fmt.Printf("::::get_msg_img err :::::%v  :::::: msgid::::::%v" , err,fn)
+        return ""
+    }
+    if f,err := os.OpenFile(self.temp_pwd+"/"+fn,os.O_RDWR|os.O_CREATE|os.O_TRUNC,os.ModePerm); err == nil{
+        defer f.Close()
+        f.Write(body)
+    }else{
+        fmt.Println(":::file err:::", err)
+    }
+    return fn
 }
 
 
