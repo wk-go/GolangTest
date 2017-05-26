@@ -3,6 +3,8 @@ package main
 import (
     "github.com/lxn/walk"
     . "github.com/lxn/walk/declarative"
+    "time"
+    "os"
 )
 
 func main() {
@@ -11,7 +13,9 @@ func main() {
     var selectFileButton, clearFileButton, downloadButton *walk.PushButton
     var logTextEdit *walk.TextEdit
     var labelMinSize = Size{Width:70}
+    var mw = &walk.MainWindow{}
     MainWindow{
+        AssignTo: &mw,
         Title: "Web Page Downloader",
         Layout: VBox{},
         MinSize: Size{600, 400},
@@ -29,7 +33,7 @@ func main() {
                     Label{AssignTo:&sourceFileLabel,Text:"本地源文件:",MinSize:labelMinSize},
                     LineEdit{AssignTo:&sourceFileLineEdit},
                     PushButton{AssignTo:&selectFileButton,Text:"浏览",OnClicked:func(){
-                        selectFile(sourceFileLineEdit)
+                        selectFile(sourceFileLineEdit,mw)
                     }},
                     PushButton{AssignTo:&clearFileButton, Text:"清除", OnClicked:func(){
                         clearFile(sourceFileLineEdit)
@@ -47,7 +51,10 @@ func main() {
                 Layout:HBox{},
                 Children: []Widget{
                     PushButton{AssignTo:&downloadButton, Text:"下载", OnClicked:func(){
+                        downloadButton.SetEnabled(false)
                         download(logTextEdit)
+                        time.Sleep(2*time.Second)
+                        downloadButton.SetEnabled(true)
                     }},
                 },
             },
@@ -61,8 +68,13 @@ func main() {
     }.Run()
 }
 
-func selectFile(showEdit *walk.LineEdit){
+func selectFile(showEdit *walk.LineEdit,mw *walk.MainWindow){
     showEdit.SetText("hello world");
+    currPath,_ := os.Getwd()
+    f := walk.FileDialog{Title:"选择源文件", InitialDirPath: currPath}
+    if o,_ := f.ShowOpen(mw); o{
+        showEdit.SetText(f.FilePath)
+    }
 }
 func clearFile(showEdit *walk.LineEdit){
     showEdit.SetText("")
