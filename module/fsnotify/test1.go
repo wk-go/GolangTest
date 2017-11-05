@@ -1,11 +1,12 @@
 package main
 
 import (
-	"gopkg.in/fsnotify.v1"
 	"log"
+
+	"github.com/fsnotify/fsnotify"
 )
 
-func main(){
+func main() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -27,7 +28,7 @@ func main(){
 		}
 	}()
 
-	err = watcher.Add("tmp/foo")
+	err = watcher.Add("./tmp/foo")
 	if err != nil {
 		log.Fatal(err)
 	}
