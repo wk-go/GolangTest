@@ -1,5 +1,12 @@
 package main
 
+/**
+<p>结构体必须是<strong>大写字母开头</strong>的成员才会被JSON处理到，小写字母开头的成员不会有影响。</p>
+<p>Mashal时，结构体的成员变量名将会直接作为JSON Object的key打包成JSON；Unmashal时，会自动匹配对应的变量名进行赋，大小写不敏感。<br>
+</p>
+<p>Unmarshal时，如果JSON中有多余的字段，会被直接抛弃掉；如果JSON缺少某个字段，则直接忽略不对结构体中变量赋，不会报错。<br>
+ */
+
 import (
     "time"
     "encoding/json"
