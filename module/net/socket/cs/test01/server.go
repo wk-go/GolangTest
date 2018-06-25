@@ -50,7 +50,8 @@ func handleConnection(conn net.Conn){
 
 		msg = append(msg,b[:n]...)
 	}
-
+	fmt.Println("msg:", msg)
+	fmt.Println("msg string:", string(msg))
 	conn.Write(msg)
 	// Echo all incoming data.
 	//io.Copy(conn, conn)
