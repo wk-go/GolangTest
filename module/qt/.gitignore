@@ -9,3 +9,4 @@ minimal_*
 *-minimal.*
 *_string.go
 rcc*
+*.syso
