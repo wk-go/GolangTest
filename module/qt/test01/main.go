@@ -20,5 +20,11 @@ func main(){
 	button.SetText("Click Me!")
 	button.Show()
 
+	button.ConnectClicked(func(_ bool) {
+		msgBox := widgets.NewQMessageBox(nil)
+		msgBox.SetText("Hello World")
+		msgBox.Exec()
+	})
+
 	widgets.QApplication_Exec()
 }
