@@ -1,0 +1,1 @@
+qtdeploy -debug -fast test desktop
