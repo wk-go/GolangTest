@@ -1,0 +1,1 @@
+qtdeploy test desktop
