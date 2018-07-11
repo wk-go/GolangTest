@@ -6,6 +6,7 @@ import (
 	"time"
 	"os"
 	"strconv"
+	"fmt"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,9 +128,24 @@ type Job1 struct {
 	Name  string
 	Count int
 }
-
+//实现Job接口
 func (j *Job1) Do() error {
 	j.Count++
+	log.Printf("%v:%d", j.Name, j.Count)
+	return nil
+}
+
+type Job2 struct {
+	Name  string
+	Count int
+}
+func (j *Job2) add2(){
+	j.Count+=2
+}
+
+//实现Job接口
+func (j *Job2) Do() error {
+	j.add2()
 	log.Printf("%v:%d", j.Name, j.Count)
 	return nil
 }
@@ -143,11 +159,14 @@ func main() {
 
 	dispatcher := NewDispatcher("default")
 	//worker的队列的数量跟任务数有一定的比例，当前例子的情况4、5、6、7效果最佳,8/8反而不好，超过以后处理的计数反而变少了
+	//如果把select中default的语句置空，就没有那么大差异了。
 	dispatcher.MaxWorkerPoolSize = maxWorkerPoolSize
 
 	//job的队列要足够大
 	dispatcher.MaxJobQueueSize = 100000
 	dispatcher.Run()
+
+	//八个定时任务
 	t1 := time.NewTimer(time.Millisecond * 1)
 	t2 := time.NewTimer(time.Millisecond * 1)
 	t3 := time.NewTimer(time.Millisecond * 1)
@@ -157,14 +176,15 @@ func main() {
 	t7 := time.NewTimer(time.Millisecond * 1)
 	t8 := time.NewTimer(time.Millisecond * 1)
 
-	job1 := &Job1{Name: "job-obj-1", Count: 0,}
-	job2 := &Job1{Name: "job-obj-2", Count: 0,}
-	job3 := &Job1{Name: "job-obj-3", Count: 0,}
-	job4 := &Job1{Name: "job-obj-4", Count: 0,}
-	job5 := &Job1{Name: "job-obj-5", Count: 0,}
-	job6 := &Job1{Name: "job-obj-6", Count: 0,}
-	job7 := &Job1{Name: "job-obj-7", Count: 0,}
-	job8 := &Job1{Name: "job-obj-8", Count: 0,}
+	// 8个job
+	job1 := &Job1{Name: "job1-1", Count: 0,}
+	job2 := &Job1{Name: "job1-2", Count: 0,}
+	job3 := &Job1{Name: "job1-3", Count: 0,}
+	job4 := &Job1{Name: "job1-4", Count: 0,}
+	job5 := &Job1{Name: "job1-5", Count: 0,}
+	job6 := &Job1{Name: "job1-6", Count: 0,}
+	job7 := &Job1{Name: "job1-7", Count: 0,}
+	job8 := &Job2{Name: "job2-8", Count: 0,}
 
 	tX := time.NewTimer(time.Second * 1)
 For:
@@ -213,6 +233,7 @@ For:
 		}
 	}
 
+	fmt.Println("=====================================================================")
 	job1.Do()
 	job2.Do()
 	job3.Do()
