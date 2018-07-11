@@ -111,10 +111,13 @@ func (d *Dispatcher) AddJob(job Job) {
 }
 
 func (d *Dispatcher) Stop() {
-	for _,w := range d.WorkerList {
-		w.Stop()
-	}
-	d.quit <- true
+	go func() {
+		for _, w := range d.WorkerList {
+			w.Stop()
+			time.Sleep(time.Millisecond * 10)
+		}
+		d.quit <- true
+	}()
 }
 
 ///////////////////////////////////////////////////////////////
