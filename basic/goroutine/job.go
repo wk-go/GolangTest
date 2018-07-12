@@ -103,7 +103,8 @@ func (d *Dispatcher) dispatch() {
 			return
 		default:
 			//log.Println("dipathcer waiting!")
-			//time.Sleep(time.Millisecond*10)
+			//还是得加个延时，不然没有任务空转的时候非常消耗cpu
+			time.Sleep(time.Nanosecond*1)
 		}
 	}
 }
