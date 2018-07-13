@@ -101,10 +101,11 @@ func (d *Dispatcher) dispatch() {
 		case <-d.quit:
 			log.Printf("Dispatcher[%s] stoped!\n",d.Name)
 			return
-		default:
+		//20180713昨天夜里仔细想想这个地方阻塞也可以啊
+		//default:
 			//log.Println("dipathcer waiting!")
 			//还是得加个延时，不然没有任务空转的时候非常消耗cpu
-			time.Sleep(time.Nanosecond*1)
+			//time.Sleep(time.Nanosecond*1)
 		}
 	}
 }
@@ -187,7 +188,7 @@ func main() {
 	job7 := &Job1{Name: "job1-7", Count: 0,}
 	job8 := &Job2{Name: "job2-8", Count: 0,}
 
-	tX := time.NewTimer(time.Second * 1)
+	tX := time.NewTimer(time.Second * 10)
 For:
 	for {
 		select {
@@ -226,8 +227,8 @@ For:
 		case <-tX.C:
 			dispatcher.Stop()
 			break For
-
-		default:
+		//20180713 现在把所有的default都去掉也不报错了。
+		//default:
 			//log.Println("main waiting!")
 			//time.Sleep(time.Millisecond*10)
 
