@@ -26,8 +26,9 @@ func main() {
     tm := time.Unix(i, 0)
     fmt.Println(tm)
 
-    var timestamp int64 = 1498003200
+    var timestamp int64 = 1498003200 //2017-06-21
     tm2 := time.Unix(timestamp, 0)
     fmt.Println(tm2.Format("2006-01-02 03:04:05 PM"))
     fmt.Println(tm2.Format("02/01/2006 15:04:05 PM"))
+    fmt.Println(tm2.Format("2006-01-02"))
 }
