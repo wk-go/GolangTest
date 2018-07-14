@@ -19,6 +19,10 @@ func main() {
     fmt.Println(t)
     fmt.Println(t.Unix())
 
+    t, _ = time.Parse("2006-01-02", "2017-06-21")
+    fmt.Println(t)
+    fmt.Println(t.Unix())
+
     i, err := strconv.ParseInt("1498003200", 10, 64)
     if err != nil {
         panic(err)
