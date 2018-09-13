@@ -28,7 +28,7 @@ type AdminController struct {
 }
 
 func (self *AdminController) Index(c *gin.Context){
-	c.String(200,"AdminIndex")
+	c.HTML(200,"admin/index.html",gin.H{"title": "Gin Test"})
 }
 func (self *AdminController) Statistics(c *gin.Context){
 	c.String(200,"AdminStatistics")
@@ -55,5 +55,5 @@ func (self * AdminController) Login(c *gin.Context){
 func (self *AdminController) Logout(c *gin.Context){
 	session := sessions.Default(c)
 	session.Clear()
-	c.JSON(200,c.H{"message": "Logout Success"})
+	c.JSON(200,gin.H{"message": "Logout Success"})
 }
