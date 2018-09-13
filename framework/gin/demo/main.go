@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"path/filepath"
 	"github.com/gin-contrib/multitemplate"
+	"strings"
 )
 
 func main() {
@@ -66,7 +67,7 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 	// Generate our templates map from our layouts/ and includes/ directories
 	for _, include := range includes {
 		files := append(layouts, include)
-		r.AddFromFiles(filepath.Base(templatesDir) + "/" + filepath.Base(include), files...)
+		r.AddFromFiles(filepath.Base(templatesDir) + "/" + strings.Replace(filepath.Base(include), ".html", "", 1), files...)
 	}
 	return r
 }

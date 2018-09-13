@@ -28,7 +28,7 @@ type AdminController struct {
 }
 
 func (self *AdminController) Index(c *gin.Context){
-	c.HTML(200,"admin/index.html",gin.H{"title": "Gin Test"})
+	c.HTML(200,"admin/index",gin.H{"title": "Gin Test"})
 }
 func (self *AdminController) Statistics(c *gin.Context){
 	c.String(200,"AdminStatistics")
