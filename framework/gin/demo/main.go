@@ -10,6 +10,10 @@ import (
 
 func main() {
 	r := gin.Default()
+	render := loadTemplates("views/admin")
+	render = frontTemplates("views/front", render)
+	r.HTMLRender = render
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -26,8 +30,6 @@ func main() {
 	adminGroup := r.Group("/admin")
 	store := cookie.NewStore([]byte("secret"))
 	adminGroup.Use(sessions.Sessions("mysession", store))
-
-	r.HTMLRender = loadTemplates("views/admin")
 	{
 		adminGroup.Static("/assets", "views/admin/assets")
 		adminGroup.GET("",adminCtrl.Index)
@@ -38,6 +40,14 @@ func main() {
 		adminGroup.GET("/session-test",adminCtrl.SessionTest)
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080
+}
+
+func frontTemplates(templatesDir string, render multitemplate.Renderer) multitemplate.Renderer{
+	tpls := []string{"index","view"}
+	for _, tpl := range tpls {
+		render.AddFromFiles("front/"+tpl, templatesDir+"/"+tpl+".html")
+	}
+	return render
 }
 
 func loadTemplates(templatesDir string) multitemplate.Renderer {

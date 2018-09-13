@@ -15,10 +15,10 @@ type FrontController struct {
 }
 
 func (self *FrontController) Index(c *gin.Context){
-	c.String(200,"FrontIndex!")
+	c.HTML(200,"front/index",gin.H{"title":"Index","content":"This is index page."})
 }
 func (self *FrontController) View(c *gin.Context){
-	c.String(200,"FrontView!")
+	c.HTML(200, "front/view", gin.H{"title": "View", "content": "This is view page."})
 }
 
 
