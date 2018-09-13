@@ -26,6 +26,9 @@ func main() {
 	adminGroup.Use(sessions.Sessions("mysession", store))
 	{
 		adminGroup.GET("",adminCtrl.Index)
+		adminGroup.GET("/login",adminCtrl.Login)
+		adminGroup.POST("/login",adminCtrl.Login)
+		adminGroup.GET("/logout",adminCtrl.Logout)
 		adminGroup.GET("/statistics",adminCtrl.Statistics)
 		adminGroup.GET("/session-test",adminCtrl.SessionTest)
 	}

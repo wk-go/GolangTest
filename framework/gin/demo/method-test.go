@@ -48,3 +48,12 @@ func (self *AdminController) SessionTest(c *gin.Context){
 	session.Save()
 	c.JSON(200, gin.H{"count": count})
 }
+
+func (self * AdminController) Login(c *gin.Context){
+
+}
+func (self *AdminController) Logout(c *gin.Context){
+	session := sessions.Default(c)
+	session.Clear()
+	c.JSON(200,c.H{"message": "Logout Success"})
+}
