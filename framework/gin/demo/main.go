@@ -13,12 +13,14 @@ func main() {
 	frontGroup := r.Group("/")
 	{
 		frontGroup.GET("", frontCtrl.Index)
+		frontGroup.GET("view", frontCtrl.View)
 	}
 
 	adminCtrl := &AdminController{}
 	adminGroup := r.Group("/admin")
 	{
 		adminGroup.GET("",adminCtrl.Index)
+		adminGroup.GET("/statistics",adminCtrl.Statistics)
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080
 }

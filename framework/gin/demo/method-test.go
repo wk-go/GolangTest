@@ -14,6 +14,9 @@ type FrontController struct {
 func (self *FrontController) Index(c *gin.Context){
 	c.String(200,"FrontIndex!")
 }
+func (self *FrontController) View(c *gin.Context){
+	c.String(200,"FrontView!")
+}
 
 
 //group admin
@@ -23,4 +26,7 @@ type AdminController struct {
 
 func (self *AdminController) Index(c *gin.Context){
 	c.String(200,"AdminIndex")
+}
+func (self *AdminController) Statistics(c *gin.Context){
+	c.String(200,"AdminStatistics")
 }
