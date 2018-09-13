@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/sessions"
+)
 
 type Controller struct {
 	Title string
@@ -29,4 +32,19 @@ func (self *AdminController) Index(c *gin.Context){
 }
 func (self *AdminController) Statistics(c *gin.Context){
 	c.String(200,"AdminStatistics")
+}
+
+func (self *AdminController) SessionTest(c *gin.Context){
+	session := sessions.Default(c)
+	var count int
+	v := session.Get("count")
+	if v == nil{
+		count = 0
+	} else {
+		count = v.(int)
+		count ++
+	}
+	session.Set("count", count)
+	session.Save()
+	c.JSON(200, gin.H{"count": count})
 }
