@@ -36,6 +36,19 @@ func main(){
 	// Update - update product's price to 2000
 	db.Model(&product).Update("Price", 2000)
 
+	//got list
+	var products []Product
+	db.Find(&products)
+	for i, model := range products{
+		fmt.Printf("products[%d]:%v\n", i, model)
+	}
+	fmt.Println("Use Pointer")
+	var productsPtr []*Product
+	db.Find(&productsPtr)
+	for i, model := range productsPtr{
+		fmt.Printf("products[%d]:%v\n", i, model)
+	}
+
 	// Delete - delete product
 	//db.Delete(&product)
 }
