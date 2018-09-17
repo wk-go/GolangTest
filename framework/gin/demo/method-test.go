@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/sessions"
 	"github.com/jinzhu/gorm"
+	"strings"
 )
 
 type Controller struct {
@@ -32,6 +33,10 @@ type AdminController struct {
 func (self *AdminController) MiddleWarePrepare(c *gin.Context){
 	self.Session = sessions.Default(c)
 
+	if !self.isLogin(c) && c.Request.RequestURI != "/admin/login" && strings.Index(c.Request.RequestURI, "assets") == -1 {
+		c.Redirect(302, "/admin/login")
+		return
+	}
 	c.Next()
 }
 func (self *AdminController) isLogin(c *gin.Context) bool{
@@ -69,9 +74,10 @@ func (self * AdminController) Login(c *gin.Context){
 		c.Redirect(302,"/admin")
 		return
 	}
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
 	if  c.Request.Method == "POST"{
-		username := c.PostForm("username")
-		password := c.PostForm("password")
 		if username != "" && password != ""{
 			user := &User{Username:username}
 			self.DB.First(&user)
@@ -80,18 +86,20 @@ func (self * AdminController) Login(c *gin.Context){
 				session.Set("id", user.ID)
 				session.Set("username", user.Username)
 				session.Save()
-				c.JSON(200, gin.H{"code": 1, "message": "登录成功"})
+				c.Redirect(302, "/admin")
+				//c.JSON(200, gin.H{"code": 1, "message": "登录成功"})
 				return
 			}
-			c.JSON(200,gin.H{"code": -1,"message": "登录失败"})
-			return
+			//c.JSON(200,gin.H{"code": -1,"message": "登录失败"})
+			//return
 		}
 	}
-	c.HTML(200,"admin/login",gin.H{"title": "Login"})
+	c.HTML(200,"admin/login",gin.H{"title": "Login", "username": username, "password": password})
 }
 func (self *AdminController) Logout(c *gin.Context){
 	session := self.Session
 	session.Clear()
 	session.Save()
-	c.JSON(200,gin.H{"message": "Logout Success"})
+	//c.JSON(200,gin.H{"message": "Logout Success"})
+	c.Redirect(302, "login")
 }
