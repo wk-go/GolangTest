@@ -51,6 +51,7 @@ func main() {
     adminGroup := r.Group("/admin")
     store := cookie.NewStore([]byte("secret"))
     adminGroup.Use(sessions.Sessions("mysession", store))
+    adminGroup.Use(adminCtrl.MiddleWarePrepare)
     {
         adminGroup.Static("/assets", "views/admin/assets")
         adminGroup.GET("", adminCtrl.Index)
@@ -58,7 +59,7 @@ func main() {
         adminGroup.POST("/login", adminCtrl.Login)
         adminGroup.GET("/logout", adminCtrl.Logout)
         adminGroup.GET("/statistics", adminCtrl.Statistics)
-        adminGroup.GET("/session-test", adminCtrl.SessionTest)
+        adminGroup.GET("/Session-test", adminCtrl.SessionTest)
     }
     r.Run() // listen and serve on 0.0.0.0:8080
 }

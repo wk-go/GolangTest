@@ -27,10 +27,16 @@ func (self *FrontController) View(c *gin.Context){
 //group admin
 type AdminController struct {
 	Controller
+	Session sessions.Session
+}
+func (self *AdminController) MiddleWarePrepare(c *gin.Context){
+	self.Session = sessions.Default(c)
+
+	c.Next()
 }
 func (self *AdminController) isLogin(c *gin.Context) bool{
-	session := sessions.Default(c)
-	if id,ok := session.Get("id").(uint); ok && id > 0{
+	self.Session = sessions.Default(c)
+	if id,ok := self.Session.Get("id").(uint); ok && id > 0{
 		return true
 	}
 	return false
@@ -44,7 +50,7 @@ func (self *AdminController) Statistics(c *gin.Context){
 }
 
 func (self *AdminController) SessionTest(c *gin.Context){
-	session := sessions.Default(c)
+	session := self.Session
 	var count int
 	v := session.Get("count")
 	if v == nil{
@@ -70,7 +76,7 @@ func (self * AdminController) Login(c *gin.Context){
 			user := &User{Username:username}
 			self.DB.First(&user)
 			if user.ID != uint(0) && user.Password == password{
-				session := sessions.Default(c)
+				session := self.Session
 				session.Set("id", user.ID)
 				session.Set("username", user.Username)
 				session.Save()
@@ -84,7 +90,8 @@ func (self * AdminController) Login(c *gin.Context){
 	c.HTML(200,"admin/login",gin.H{"title": "Login"})
 }
 func (self *AdminController) Logout(c *gin.Context){
-	session := sessions.Default(c)
+	session := self.Session
 	session.Clear()
+	session.Save()
 	c.JSON(200,gin.H{"message": "Logout Success"})
 }
