@@ -17,7 +17,6 @@ var DB *gorm.DB
 func main() {
 
     //db init
-
     DB, err := gorm.Open("sqlite3", "cache/my.db")
     if err != nil {
         panic(err)
@@ -26,6 +25,8 @@ func main() {
 
     // Migrate the schema
     DB.AutoMigrate(&User{}, &Article{}, &Category{})
+    admin := &User{Username:"admin",Password:"123"}
+    DB.FirstOrCreate(&admin)
 
     r := gin.Default()
     render := loadTemplates("views/admin")
@@ -38,6 +39,7 @@ func main() {
         })
     })
     frontCtrl := &FrontController{}
+    frontCtrl.DB = DB
     frontGroup := r.Group("/")
     {
         frontGroup.GET("", frontCtrl.Index)
@@ -45,6 +47,7 @@ func main() {
     }
 
     adminCtrl := &AdminController{}
+    adminCtrl.DB = DB
     adminGroup := r.Group("/admin")
     store := cookie.NewStore([]byte("secret"))
     adminGroup.Use(sessions.Sessions("mysession", store))
