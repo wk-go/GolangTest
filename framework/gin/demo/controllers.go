@@ -6,6 +6,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"strings"
 	"net/http"
+	"fmt"
+	"strconv"
 )
 
 type Controller struct {
@@ -81,7 +83,7 @@ func (ctrl * AdminController) Login(c *gin.Context){
 	if  c.Request.Method == "POST"{
 		if username != "" && password != ""{
 			user := &User{Username:username}
-			ctrl.DB.First(&user)
+			ctrl.DB.First(user)
 			if user.ID != uint(0) && user.Password == password{
 				session := ctrl.Session
 				session.Set("id", user.ID)
@@ -118,18 +120,25 @@ func (ctrl *ArticleController) Create(c *gin.Context){
 	if c.Request.Method == "POST"{
 		if err := c.ShouldBind(&model); err == nil {
 			ctrl.DB.Save(&model)
-			c.Redirect(302, "/admin/article/update")
+			c.Redirect(302, fmt.Sprintf("/admin/article/update/%d", model.ID))
 			return
 		}else{
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 	}
-	c.HTML(200,"admin/article-create", gin.H{"title": ctrl.Title, "model": model})
+	c.HTML(200,"admin/article-edit", gin.H{"title": ctrl.Title, "model": model})
 }
 
 func (ctrl *ArticleController) Update(c *gin.Context){
-
+	ctrl.Title = "更新"
+	idInt,err := strconv.Atoi(c.Param("id"))
+	if err != nil{
+		panic(err)
+	}
+	id := uint(idInt)
+	model := ctrl.getModel(id)
+	c.HTML(200,"admin/article-edit", gin.H{"title": ctrl.Title, "model": model})
 }
 
 func (ctrl *ArticleController) Delete(c *gin.Context){
@@ -138,7 +147,10 @@ func (ctrl *ArticleController) Delete(c *gin.Context){
 
 func (ctrl *ArticleController) getModel(id uint) *Article{
 	model := &Article{}
-	ctrl.DB.First(model,id)
+	//ctrl.DB.First(&model, id)
+	if err := ctrl.DB.Where("id = ?", id).First(&model).Error; err != nil {
+		panic(err)
+	}
 	return model
 }
 /*************** Article  end  *********************/

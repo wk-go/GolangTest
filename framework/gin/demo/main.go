@@ -67,8 +67,8 @@ func main() {
         adminGroup.GET("/article/index", articleCtrl.Index)
         adminGroup.GET("/article/create", articleCtrl.Create)
         adminGroup.POST("/article/create", articleCtrl.Create)
-        adminGroup.GET("/article/update", articleCtrl.Update)
-        adminGroup.POST("/article/update", articleCtrl.Update)
+        adminGroup.GET("/article/update/:id", articleCtrl.Update)
+        adminGroup.POST("/article/update/:id", articleCtrl.Update)
         adminGroup.POST("/article/delete", articleCtrl.Delete)
 
     }
