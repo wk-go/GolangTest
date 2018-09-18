@@ -17,10 +17,10 @@ type FrontController struct {
 	Controller
 }
 
-func (self *FrontController) Index(c *gin.Context){
+func (ctrl *FrontController) Index(c *gin.Context){
 	c.HTML(200,"front/index",gin.H{"title":"Index","content":"This is index page."})
 }
-func (self *FrontController) View(c *gin.Context){
+func (ctrl *FrontController) View(c *gin.Context){
 	c.HTML(200, "front/view", gin.H{"title": "View", "content": "This is view page."})
 }
 
@@ -30,32 +30,32 @@ type AdminController struct {
 	Controller
 	Session sessions.Session
 }
-func (self *AdminController) MiddleWarePrepare(c *gin.Context){
-	self.Session = sessions.Default(c)
+func (ctrl *AdminController) MiddleWarePrepare(c *gin.Context){
+	ctrl.Session = sessions.Default(c)
 
-	if !self.isLogin(c) && c.Request.RequestURI != "/admin/login" && strings.Index(c.Request.RequestURI, "assets") == -1 {
+	if !ctrl.isLogin(c) && c.Request.RequestURI != "/admin/login" && strings.Index(c.Request.RequestURI, "assets") == -1 {
 		c.Redirect(302, "/admin/login")
 		return
 	}
 	c.Next()
 }
-func (self *AdminController) isLogin(c *gin.Context) bool{
-	self.Session = sessions.Default(c)
-	if id,ok := self.Session.Get("id").(uint); ok && id > 0{
+func (ctrl *AdminController) isLogin(c *gin.Context) bool{
+	ctrl.Session = sessions.Default(c)
+	if id,ok := ctrl.Session.Get("id").(uint); ok && id > 0{
 		return true
 	}
 	return false
 }
 
-func (self *AdminController) Index(c *gin.Context){
+func (ctrl *AdminController) Index(c *gin.Context){
 	c.HTML(200,"admin/index",gin.H{"title": "Gin Test"})
 }
-func (self *AdminController) Statistics(c *gin.Context){
+func (ctrl *AdminController) Statistics(c *gin.Context){
 	c.String(200,"AdminStatistics")
 }
 
-func (self *AdminController) SessionTest(c *gin.Context){
-	session := self.Session
+func (ctrl *AdminController) SessionTest(c *gin.Context){
+	session := ctrl.Session
 	var count int
 	v := session.Get("count")
 	if v == nil{
@@ -69,8 +69,8 @@ func (self *AdminController) SessionTest(c *gin.Context){
 	c.JSON(200, gin.H{"count": count})
 }
 
-func (self * AdminController) Login(c *gin.Context){
-	if self.isLogin(c){
+func (ctrl * AdminController) Login(c *gin.Context){
+	if ctrl.isLogin(c){
 		c.Redirect(302,"/admin")
 		return
 	}
@@ -80,9 +80,9 @@ func (self * AdminController) Login(c *gin.Context){
 	if  c.Request.Method == "POST"{
 		if username != "" && password != ""{
 			user := &User{Username:username}
-			self.DB.First(&user)
+			ctrl.DB.First(&user)
 			if user.ID != uint(0) && user.Password == password{
-				session := self.Session
+				session := ctrl.Session
 				session.Set("id", user.ID)
 				session.Set("username", user.Username)
 				session.Save()
@@ -96,10 +96,30 @@ func (self * AdminController) Login(c *gin.Context){
 	}
 	c.HTML(200,"admin/login",gin.H{"title": "Login", "username": username, "password": password})
 }
-func (self *AdminController) Logout(c *gin.Context){
-	session := self.Session
+func (ctrl *AdminController) Logout(c *gin.Context){
+	session := ctrl.Session
 	session.Clear()
 	session.Save()
 	//c.JSON(200,gin.H{"message": "Logout Success"})
 	c.Redirect(302, "login")
 }
+/*************** Article start *********************/
+type ArticleController struct{
+	AdminController
+}
+func (ctrl *ArticleController) Index(){
+
+}
+
+func (ctrl *ArticleController) Create(){
+
+}
+
+func (ctrl *ArticleController) Update(){
+
+}
+
+func (ctrl *ArticleController) Delete(){
+
+}
+/*************** Article  end  *********************/
