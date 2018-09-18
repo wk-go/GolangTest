@@ -48,6 +48,8 @@ func main() {
 
     adminCtrl := &AdminController{}
     adminCtrl.DB = DB
+    articleCtrl := &ArticleController{}
+    articleCtrl.DB = DB
     adminGroup := r.Group("/admin")
     store := cookie.NewStore([]byte("secret"))
     adminGroup.Use(sessions.Sessions("mysession", store))
@@ -60,6 +62,15 @@ func main() {
         adminGroup.GET("/logout", adminCtrl.Logout)
         adminGroup.GET("/statistics", adminCtrl.Statistics)
         adminGroup.GET("/Session-test", adminCtrl.SessionTest)
+
+        //article
+        adminGroup.GET("/article/index", articleCtrl.Index)
+        adminGroup.GET("/article/create", articleCtrl.Create)
+        adminGroup.POST("/article/create", articleCtrl.Create)
+        adminGroup.GET("/article/update", articleCtrl.Update)
+        adminGroup.POST("/article/update", articleCtrl.Update)
+        adminGroup.POST("/article/delete", articleCtrl.Delete)
+
     }
     r.Run() // listen and serve on 0.0.0.0:8080
 }

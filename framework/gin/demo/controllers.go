@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/jinzhu/gorm"
 	"strings"
+	"net/http"
 )
 
 type Controller struct {
@@ -107,19 +108,37 @@ func (ctrl *AdminController) Logout(c *gin.Context){
 type ArticleController struct{
 	AdminController
 }
-func (ctrl *ArticleController) Index(){
+func (ctrl *ArticleController) Index(c *gin.Context){
 
 }
 
-func (ctrl *ArticleController) Create(){
+func (ctrl *ArticleController) Create(c *gin.Context){
+	ctrl.Title = "添加文章"
+	model := Article{}
+	if c.Request.Method == "POST"{
+		if err := c.ShouldBind(&model); err == nil {
+			ctrl.DB.Save(&model)
+			c.Redirect(302, "/admin/article/update")
+			return
+		}else{
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	c.HTML(200,"admin/article-create", gin.H{"title": ctrl.Title, "model": model})
+}
+
+func (ctrl *ArticleController) Update(c *gin.Context){
 
 }
 
-func (ctrl *ArticleController) Update(){
+func (ctrl *ArticleController) Delete(c *gin.Context){
 
 }
 
-func (ctrl *ArticleController) Delete(){
-
+func (ctrl *ArticleController) getModel(id uint) *Article{
+	model := &Article{}
+	ctrl.DB.First(model,id)
+	return model
 }
 /*************** Article  end  *********************/
