@@ -27,6 +27,7 @@ func main() {
     DB.AutoMigrate(&User{}, &Article{}, &Category{})
     admin := &User{Username:"admin",Password:"123"}
     DB.FirstOrCreate(&admin)
+    DB.LogMode(true)
 
     r := gin.Default()
     render := loadTemplates("views/admin")

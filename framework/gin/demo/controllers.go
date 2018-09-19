@@ -6,8 +6,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"strings"
 	"net/http"
-	"fmt"
 	"strconv"
+	"fmt"
 )
 
 type Controller struct {
@@ -118,8 +118,8 @@ func (ctrl *ArticleController) Create(c *gin.Context){
 	ctrl.Title = "添加文章"
 	model := Article{}
 	if c.Request.Method == "POST"{
-		if err := c.ShouldBind(&model); err == nil {
-			ctrl.DB.Save(&model)
+		if err := c.Bind(&model); err == nil {
+			ctrl.DB.Debug().Create(&model)
 			c.Redirect(302, fmt.Sprintf("/admin/article/update/%d", model.ID))
 			return
 		}else{
@@ -147,8 +147,7 @@ func (ctrl *ArticleController) Delete(c *gin.Context){
 
 func (ctrl *ArticleController) getModel(id uint) *Article{
 	model := &Article{}
-	//ctrl.DB.First(&model, id)
-	if err := ctrl.DB.Where("id = ?", id).First(&model).Error; err != nil {
+	if err := ctrl.DB.Debug().First(&model, id).Error; err != nil {
 		panic(err)
 	}
 	return model
