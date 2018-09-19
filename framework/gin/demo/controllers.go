@@ -119,7 +119,7 @@ func (ctrl *ArticleController) Create(c *gin.Context){
 	model := Article{}
 	if c.Request.Method == "POST"{
 		if err := c.Bind(&model); err == nil {
-			ctrl.DB.Debug().Create(&model)
+			ctrl.DB.Create(&model)
 			c.Redirect(302, fmt.Sprintf("/admin/article/update/%d", model.ID))
 			return
 		}else{
@@ -147,7 +147,7 @@ func (ctrl *ArticleController) Delete(c *gin.Context){
 
 func (ctrl *ArticleController) getModel(id uint) *Article{
 	model := &Article{}
-	if err := ctrl.DB.Debug().First(&model, id).Error; err != nil {
+	if err := ctrl.DB.First(&model, id).Error; err != nil {
 		panic(err)
 	}
 	return model
