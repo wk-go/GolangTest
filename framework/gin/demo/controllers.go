@@ -111,7 +111,20 @@ type ArticleController struct{
 	AdminController
 }
 func (ctrl *ArticleController) Index(c *gin.Context){
+	var (
+		perPage  = 20
+		count  = 0
+		page int
+		models []*Article
+	)
+	pageQuery := c.DefaultQuery("page", "1")
+	page, err := strconv.Atoi(pageQuery)
+	if err !=nil || page <= 0{
+		page = 1
+	}
+	ctrl.DB.Offset((page-1)*perPage).Limit(perPage).Find(&models).Count(&count)
 
+	c.HTML(200,"admin/article-index", gin.H{"title": ctrl.Title, "models": models})
 }
 
 func (ctrl *ArticleController) Create(c *gin.Context){
