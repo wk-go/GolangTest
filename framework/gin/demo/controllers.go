@@ -111,6 +111,7 @@ type ArticleController struct{
 	AdminController
 }
 func (ctrl *ArticleController) Index(c *gin.Context){
+	ctrl.Title = "文章列表"
 	var (
 		perPage  = 20
 		count  = 0
