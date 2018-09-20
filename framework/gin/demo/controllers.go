@@ -33,6 +33,11 @@ type AdminController struct {
 	Controller
 	Session sessions.Session
 }
+func (ctrl *AdminController) HTML(c *gin.Context, code int, name string, obj gin.H){
+	obj["ctx"] = ctrl
+	c.HTML(code, name, obj)
+}
+
 func (ctrl *AdminController) MiddleWarePrepare(c *gin.Context){
 	ctrl.Session = sessions.Default(c)
 
@@ -51,7 +56,7 @@ func (ctrl *AdminController) isLogin(c *gin.Context) bool{
 }
 
 func (ctrl *AdminController) Index(c *gin.Context){
-	c.HTML(200,"admin/index",gin.H{"title": "Gin Test"})
+	ctrl.HTML(c,200,"admin/index",gin.H{"title": "Gin Test"})
 }
 func (ctrl *AdminController) Statistics(c *gin.Context){
 	c.String(200,"AdminStatistics")
