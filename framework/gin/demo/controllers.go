@@ -155,7 +155,17 @@ func (ctrl *ArticleController) Update(c *gin.Context){
 }
 
 func (ctrl *ArticleController) Delete(c *gin.Context){
-
+	idQuery := c.Param("id")
+	id, err := strconv.Atoi(idQuery)
+	if err != nil{
+		panic(err)
+		c.Redirect(302,"/admin/article/index")
+		return
+	}
+	model := Article{}
+	model.ID = uint(id)
+	ctrl.DB.Delete(&model)
+	c.Redirect(302,"/admin/article/index")
 }
 
 func (ctrl *ArticleController) getModel(id uint) *Article{

@@ -70,7 +70,7 @@ func main() {
 		adminGroup.POST("/article/create", articleCtrl.Create)
 		adminGroup.GET("/article/update/:id", articleCtrl.Update)
 		adminGroup.POST("/article/update/:id", articleCtrl.Update)
-		adminGroup.POST("/article/delete", articleCtrl.Delete)
+		adminGroup.GET("/article/delete/:id", articleCtrl.Delete)
 
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080

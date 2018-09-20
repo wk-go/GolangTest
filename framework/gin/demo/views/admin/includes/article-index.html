@@ -31,7 +31,10 @@
                 <tbody>
                 {{range $i, $model := .models}}
                     <tr>
-                        <td>{{$model.ID}}</td><td>{{$model.Title}}</td><td>{{$model.Content}}</td><td></td>
+                        <td>{{$model.ID}}</td><td>{{$model.Title}}</td><td>{{$model.Content}}</td><td>
+                        <a class="btn btn-danger" href="/admin/article/delete/{{$model.ID}}" onclick="return confirm('确定删除吗？');">删除</a>
+                        <a class="btn btn-primary" href="/admin/article/update/{{$model.ID}}">编辑</a>
+                    </td>
                     </tr>
                 {{end}}
                 </tbody>
