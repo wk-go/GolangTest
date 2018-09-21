@@ -34,7 +34,8 @@ type AdminController struct {
 	Session sessions.Session
 }
 func (ctrl *AdminController) HTML(c *gin.Context, code int, name string, obj gin.H){
-	obj["ctx"] = ctrl
+	obj["ctrl"] = ctrl
+	obj["username"] = ctrl.Session.Get("username")
 	c.HTML(code, name, obj)
 }
 
