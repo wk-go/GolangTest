@@ -99,8 +99,12 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 
 	// Generate our templates map from our layouts/ and includes/ directories
 	for _, include := range includes {
-		files := append(layouts, include)
-		r.AddFromFiles(filepath.Base(templatesDir)+"/"+strings.Replace(filepath.Base(include), ".html", "", 1), files...)
+		filename := filepath.Base(include)
+		files := []string{include}
+		if filename != "login.html"{
+			files = append(layouts, files...)
+		}
+		r.AddFromFiles(filepath.Base(templatesDir)+"/"+strings.Replace(filename, ".html", "", 1), files...)
 	}
 	return r
 }
