@@ -35,6 +35,9 @@ type AdminController struct {
 }
 func (ctrl *AdminController) HTML(c *gin.Context, code int, name string, obj gin.H){
 	obj["ctrl"] = ctrl
+	if ctrl.Session == nil{
+		ctrl.Session = sessions.Default(c)
+	}
 	obj["username"] = ctrl.Session.Get("username")
 	c.HTML(code, name, obj)
 }
@@ -103,7 +106,7 @@ func (ctrl * AdminController) Login(c *gin.Context){
 			//return
 		}
 	}
-	c.HTML(200,"admin/login",gin.H{"title": "Login", "username": username, "password": password})
+	ctrl.HTML(c,200,"admin/login",gin.H{"title": "Login", "username": username, "password": password})
 }
 func (ctrl *AdminController) Logout(c *gin.Context){
 	session := ctrl.Session
@@ -131,7 +134,7 @@ func (ctrl *ArticleController) Index(c *gin.Context){
 	}
 	ctrl.DB.Offset((page-1)*perPage).Limit(perPage).Find(&models).Count(&count)
 
-	c.HTML(200,"admin/article-index", gin.H{"title": ctrl.Title, "models": models})
+	ctrl.HTML(c,200,"admin/article-index", gin.H{"title": ctrl.Title, "models": models})
 }
 
 func (ctrl *ArticleController) Create(c *gin.Context){
@@ -147,7 +150,7 @@ func (ctrl *ArticleController) Create(c *gin.Context){
 			return
 		}
 	}
-	c.HTML(200,"admin/article-edit", gin.H{"title": ctrl.Title, "model": model})
+	ctrl.HTML(c,200,"admin/article-edit", gin.H{"title": ctrl.Title, "model": model})
 }
 
 func (ctrl *ArticleController) Update(c *gin.Context){
@@ -158,7 +161,7 @@ func (ctrl *ArticleController) Update(c *gin.Context){
 	}
 	id := uint(idInt)
 	model := ctrl.getModel(id)
-	c.HTML(200,"admin/article-edit", gin.H{"title": ctrl.Title, "model": model})
+	ctrl.HTML(c,200,"admin/article-edit", gin.H{"title": ctrl.Title, "model": model})
 }
 
 func (ctrl *ArticleController) Delete(c *gin.Context){
