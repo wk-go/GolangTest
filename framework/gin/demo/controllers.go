@@ -51,6 +51,9 @@ func (ctrl *AdminController) MiddleWarePrepare(c *gin.Context){
 	}
 	c.Next()
 }
+func (ctrl *AdminController) MiddleWareAfterAction(c *gin.Context){
+
+}
 func (ctrl *AdminController) isLogin(c *gin.Context) bool{
 	ctrl.Session = sessions.Default(c)
 	if id,ok := ctrl.Session.Get("id").(uint); ok && id > 0{
