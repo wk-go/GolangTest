@@ -57,7 +57,7 @@ func main() {
 	adminGroup.Use(adminCtrl.MiddleWareSurroundings)
 	router := &Router{}
 	{
-		router.Add("POST","/login", adminCtrl.Login)
+		router.Add("POST","/login", adminCtrl, adminCtrl.Login)
 
 		adminGroup.Static("/assets", "views/admin/assets")
 		adminGroup.GET("", adminCtrl.Index)
