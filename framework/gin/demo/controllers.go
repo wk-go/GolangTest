@@ -31,7 +31,7 @@ func (ctrl *FrontController) View(c *gin.Context){
 //group admin
 type AdminController struct {
 	Controller
-	Session sessions.Session
+	Session sessions.Session //此处为记录一个问题如果所有请求都使用这个对象会造成session使用混乱
 }
 func (ctrl *AdminController) HTML(c *gin.Context, code int, name string, obj gin.H){
 	obj["ctrl"] = ctrl
