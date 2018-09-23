@@ -35,28 +35,24 @@ type AdminController struct {
 }
 func (ctrl *AdminController) HTML(c *gin.Context, code int, name string, obj gin.H){
 	obj["ctrl"] = ctrl
-	if ctrl.Session == nil{
-		ctrl.Session = sessions.Default(c)
-	}
-	obj["username"] = ctrl.Session.Get("username")
+
+	session := sessions.Default(c)
+	obj["session"] = session
+
+	obj["username"] = session.Get("username")
 	c.HTML(code, name, obj)
 }
 
-func (ctrl *AdminController) MiddleWarePrepare(c *gin.Context){
-	ctrl.Session = sessions.Default(c)
-
+func (ctrl *AdminController) MiddleWareSurroundings(c *gin.Context){
 	if !ctrl.isLogin(c) && c.Request.RequestURI != "/admin/login" && strings.Index(c.Request.RequestURI, "assets") == -1 {
 		c.Redirect(302, "/admin/login")
 		return
 	}
 	c.Next()
 }
-func (ctrl *AdminController) MiddleWareAfterAction(c *gin.Context){
-
-}
 func (ctrl *AdminController) isLogin(c *gin.Context) bool{
-	ctrl.Session = sessions.Default(c)
-	if id,ok := ctrl.Session.Get("id").(uint); ok && id > 0{
+	session := sessions.Default(c)
+	if id,ok := session.Get("id").(uint); ok && id > 0{
 		return true
 	}
 	return false
@@ -70,7 +66,7 @@ func (ctrl *AdminController) Statistics(c *gin.Context){
 }
 
 func (ctrl *AdminController) SessionTest(c *gin.Context){
-	session := ctrl.Session
+	session := sessions.Default(c)
 	var count int
 	v := session.Get("count")
 	if v == nil{
@@ -97,7 +93,7 @@ func (ctrl * AdminController) Login(c *gin.Context){
 			user := &User{Username:username}
 			ctrl.DB.First(user)
 			if user.ID != uint(0) && user.Password == password{
-				session := ctrl.Session
+				session := sessions.Default(c)
 				session.Set("id", user.ID)
 				session.Set("username", user.Username)
 				session.Save()
