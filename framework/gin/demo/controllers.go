@@ -80,6 +80,11 @@ func (ctrl *AdminController) SessionTest(c *gin.Context){
 	c.JSON(200, gin.H{"count": count})
 }
 
+func(ctrl *AdminController) TestRouter(c *gin.Context){
+	ctrl.HTML(c,200,"admin/index",gin.H{"title": "Gin Test"})
+	//c.String(200,"test router")
+}
+
 func (ctrl * AdminController) Login(c *gin.Context){
 	if ctrl.isLogin(c){
 		c.Redirect(302,"/admin")

@@ -55,9 +55,10 @@ func main() {
 	store := cookie.NewStore([]byte("secret"))
 	adminGroup.Use(sessions.Sessions("mysession", store))
 	adminGroup.Use(adminCtrl.MiddleWareSurroundings)
-	router := &Router{}
+	router := &Router{Engine:r,Group:adminGroup}
 	{
-		router.Add("POST","/login", adminCtrl, adminCtrl.Login)
+		router.Add("GET","/test-router", adminCtrl, adminCtrl.TestRouter)
+		//r.Handle("GET","/test-router", adminCtrl.TestRouter)
 
 		adminGroup.Static("/assets", "views/admin/assets")
 		adminGroup.GET("", adminCtrl.Index)

@@ -3,19 +3,27 @@ package main
 import (
 	//"github.com/gin-gonic/gin"
 	"reflect"
-	"fmt"
+	"github.com/gin-gonic/gin"
 )
 type Router struct {
-
+	Engine *gin.Engine
+	Group *gin.RouterGroup
 }
-func (r *Router) Add(method,path string, controller, handler interface{}){
+func (r *Router) Add(httpMethod,relativePath string, controller, handler interface{}){
 	controllerType := reflect.TypeOf(controller)
-	fmt.Println("controllerType:", controllerType)
-	handlerType := reflect.TypeOf(handler)
-	fmt.Println("handlerType.Kind():",handlerType.Kind())
-	fmt.Println("handler type:",handlerType)
-	handlerValue := reflect.TypeOf(handler)
-	fmt.Println("handlerValue",handlerValue)
+	controllerMethod, flag := controllerType.MethodByName("TestRouter")
+	if !flag {
+		panic("router error")
+	}
+	if r.Group != nil{
+		r.Group.Handle(httpMethod,relativePath,func(c *gin.Context){
+			controllerMethod.Func.Call([]reflect.Value{reflect.ValueOf(controller),reflect.ValueOf(c)})
+		})
+		return
+	}
+	r.Engine.Handle(httpMethod,relativePath,func(c *gin.Context){
+		controllerMethod.Func.Call([]reflect.Value{reflect.ValueOf(controller),reflect.ValueOf(c)})
+	})
 }
 
 func (r *Router) UrlTo(endpoint string, values ...interface{}) string{
