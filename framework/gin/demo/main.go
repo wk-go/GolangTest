@@ -57,7 +57,7 @@ func main() {
 	adminGroup.Use(adminCtrl.MiddleWareSurroundings)
 	router := &Router{Engine:r,Group:adminGroup}
 	{
-		router.Add("GET","/test-router", adminCtrl, adminCtrl.TestRouter)
+		router.Add("GET","/test-router", adminCtrl, "TestRouter")
 		//r.Handle("GET","/test-router", adminCtrl.TestRouter)
 
 		adminGroup.Static("/assets", "views/admin/assets")
