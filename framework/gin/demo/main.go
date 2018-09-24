@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"fmt"
+	"html/template"
 )
 
 var DB *gorm.DB
@@ -30,8 +31,16 @@ func main() {
 	DB.FirstOrCreate(&admin)
 	DB.LogMode(true)
 
+
 	r := gin.Default()
-	render := loadTemplates("views/admin")
+    routerManager := NewRouter(r)
+
+    funcMap := template.FuncMap{
+		"urlTo": routerManager.UrlTo,
+	}
+	r.SetFuncMap(funcMap)
+
+	render := loadTemplates("views/admin", funcMap)
 	render = frontTemplates("views/front", render)
 	r.HTMLRender = render
 
@@ -56,7 +65,7 @@ func main() {
 	store := cookie.NewStore([]byte("secret"))
 	adminGroup.Use(sessions.Sessions("mysession", store))
 	adminGroup.Use(adminCtrl.MiddleWareSurroundings)
-	router := &Router{Engine:r,Group:adminGroup}
+    routerManager.Group =adminGroup
 	{
 
 		adminGroup.Static("/assets", "views/admin/assets")
@@ -67,14 +76,14 @@ func main() {
 		adminGroup.GET("/logout", adminCtrl.Logout)
 		adminGroup.GET("/statistics", adminCtrl.Statistics)
 		adminGroup.GET("/Session-test", adminCtrl.SessionTest)*/
-		router.Add("GET","", adminCtrl, "Index")
-		router.Add("GET","/login", adminCtrl, "Login")
-		router.Add("POST","/login", adminCtrl, "Login")
-		router.Add("GET","/logout", adminCtrl, "Logout")
-		router.Add("GET","/statistics", adminCtrl, "Statistics")
-		router.Add("GET","/session-test", adminCtrl, "SessionTest")
-		//r.Handle("GET","/test-router", adminCtrl.TestRouter)
-		router.Add("GET","/test-router", adminCtrl, "TestRouter")
+		routerManager.Add("GET","", adminCtrl, "Index")
+		routerManager.Add("GET","/login", adminCtrl, "Login")
+		routerManager.Add("POST","/login", adminCtrl, "Login")
+		routerManager.Add("GET","/logout", adminCtrl, "Logout")
+		routerManager.Add("GET","/statistics", adminCtrl, "Statistics")
+		routerManager.Add("GET","/session-test", adminCtrl, "SessionTest")
+		//r.Handle("GET","/test-routerManager", adminCtrl.TestRouter)
+		routerManager.Add("GET","/test-routerManager", adminCtrl, "TestRouter")
 
 		//article
 		/*adminGroup.GET("/article/index", articleCtrl.Index)
@@ -83,16 +92,16 @@ func main() {
 		adminGroup.GET("/article/update/:id", articleCtrl.Update)
 		adminGroup.POST("/article/update/:id", articleCtrl.Update)
 		adminGroup.GET("/article/delete/:id", articleCtrl.Delete)*/
-		router.Add("GET","/article/index", articleCtrl, "Index")
-        router.Add("GET","/article/create", articleCtrl, "Create")
-        router.Add("POST","/article/create", articleCtrl, "Create")
-        router.Add("GET","/article/update/:id", articleCtrl, "Update")
-        router.Add("POST","/article/update/:id", articleCtrl, "Update")
-        router.Add("GET", "/article/delete/:id", articleCtrl, "Delete")
+		routerManager.Add("GET","/article/index", articleCtrl, "Index")
+        routerManager.Add("GET","/article/create", articleCtrl, "Create")
+        routerManager.Add("POST","/article/create", articleCtrl, "Create")
+        routerManager.Add("GET","/article/update/:id", articleCtrl, "Update")
+        routerManager.Add("POST","/article/update/:id", articleCtrl, "Update")
+        routerManager.Add("GET", "/article/delete/:id", articleCtrl, "Delete")
 
 	}
-	fmt.Println("Admin TestRouter Url:",router.UrlTo("main.AdminController.TestRouter"))
-    fmt.Println("Article Delete Url:",router.UrlTo("main.ArticleController.Delete",":id", 100, "param1", "val1", "param2", "val2"))
+	fmt.Println("Admin TestRouter Url:", routerManager.UrlTo("main.AdminController.TestRouter"))
+    fmt.Println("Article Delete Url:", routerManager.UrlTo("main.ArticleController.Delete",":id", 100, "param1", "val1", "param2", "val2"))
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
@@ -104,7 +113,7 @@ func frontTemplates(templatesDir string, render multitemplate.Renderer) multitem
 	return render
 }
 
-func loadTemplates(templatesDir string) multitemplate.Renderer {
+func loadTemplates(templatesDir string, funcMap template.FuncMap) multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 
 	layouts, err := filepath.Glob(templatesDir + "/layouts/*.html")
@@ -120,7 +129,7 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 	// Generate our templates map from our layouts/ and includes/ directories
 	for _, include := range includes {
 		files := append(layouts, include)
-		r.AddFromFiles(filepath.Base(templatesDir)+"/"+strings.Replace(filepath.Base(include), ".html", "", 1), files...)
+		r.AddFromFilesFuncs(filepath.Base(templatesDir)+"/"+strings.Replace(filepath.Base(include), ".html", "", 1), funcMap, files...)
 	}
 	return r
 }
