@@ -10,6 +10,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"fmt"
 )
 
 var DB *gorm.DB
@@ -57,26 +58,41 @@ func main() {
 	adminGroup.Use(adminCtrl.MiddleWareSurroundings)
 	router := &Router{Engine:r,Group:adminGroup}
 	{
-		router.Add("GET","/test-router", adminCtrl, "TestRouter")
-		//r.Handle("GET","/test-router", adminCtrl.TestRouter)
 
 		adminGroup.Static("/assets", "views/admin/assets")
-		adminGroup.GET("", adminCtrl.Index)
+
+		/*adminGroup.GET("", adminCtrl.Index)
 		adminGroup.GET("/login", adminCtrl.Login)
 		adminGroup.POST("/login", adminCtrl.Login)
 		adminGroup.GET("/logout", adminCtrl.Logout)
 		adminGroup.GET("/statistics", adminCtrl.Statistics)
-		adminGroup.GET("/Session-test", adminCtrl.SessionTest)
+		adminGroup.GET("/Session-test", adminCtrl.SessionTest)*/
+		router.Add("GET","", adminCtrl, "Index")
+		router.Add("GET","/login", adminCtrl, "Login")
+		router.Add("POST","/login", adminCtrl, "Login")
+		router.Add("GET","/logout", adminCtrl, "Logout")
+		router.Add("GET","/statistics", adminCtrl, "Statistics")
+		router.Add("GET","/session-test", adminCtrl, "SessionTest")
+		//r.Handle("GET","/test-router", adminCtrl.TestRouter)
+		router.Add("GET","/test-router", adminCtrl, "TestRouter")
 
 		//article
-		adminGroup.GET("/article/index", articleCtrl.Index)
+		/*adminGroup.GET("/article/index", articleCtrl.Index)
 		adminGroup.GET("/article/create", articleCtrl.Create)
 		adminGroup.POST("/article/create", articleCtrl.Create)
 		adminGroup.GET("/article/update/:id", articleCtrl.Update)
 		adminGroup.POST("/article/update/:id", articleCtrl.Update)
-		adminGroup.GET("/article/delete/:id", articleCtrl.Delete)
+		adminGroup.GET("/article/delete/:id", articleCtrl.Delete)*/
+		router.Add("GET","/article/index", articleCtrl, "Index")
+        router.Add("GET","/article/create", articleCtrl, "Create")
+        router.Add("POST","/article/create", articleCtrl, "Create")
+        router.Add("GET","/article/update/:id", articleCtrl, "Update")
+        router.Add("POST","/article/update/:id", articleCtrl, "Update")
+        router.Add("GET", "/article/delete/:id", articleCtrl, "Delete")
 
 	}
+	fmt.Println("Admin TestRouter Url:",router.UrlTo("main.AdminController.TestRouter"))
+    fmt.Println("Article Delete Url:",router.UrlTo("main.ArticleController.Delete",":id", 100, "param1", "val1", "param2", "val2"))
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
