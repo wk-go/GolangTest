@@ -7,6 +7,7 @@ import (
 	"strings"
 	"net/http"
 	"strconv"
+	"github.com/Unknwon/paginater"
 )
 
 type Controller struct {
@@ -125,7 +126,7 @@ type ArticleController struct{
 func (ctrl *ArticleController) Index(c *gin.Context){
 	ctrl.Title = "文章列表"
 	var (
-		perPage  = 20
+		perPage  = 5
 		count  = 0
 		page int
 		models []*Article
@@ -135,9 +136,11 @@ func (ctrl *ArticleController) Index(c *gin.Context){
 	if err !=nil || page <= 0{
 		page = 1
 	}
-	ctrl.DB.Offset((page-1)*perPage).Limit(perPage).Find(&models).Count(&count)
+	ctrl.DB.Offset((page-1)*perPage).Limit(perPage).Find(&models).Offset(0).Limit(1).Count(&count)
 
-	ctrl.HTML(c,200,"admin/article-index", gin.H{"title": ctrl.Title, "models": models})
+	pager := paginater.New(count, perPage, page, 10)
+
+	ctrl.HTML(c,200,"admin/article-index", gin.H{"title": ctrl.Title, "models": models, "Page": pager, "pageUrl": c.Request.RequestURI})
 }
 
 func (ctrl *ArticleController) Create(c *gin.Context){

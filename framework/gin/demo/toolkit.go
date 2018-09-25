@@ -1,6 +1,11 @@
 package main
 
-import "strings"
+import (
+    "strings"
+    "net/url"
+    "log"
+    "fmt"
+)
 
 // strtr()
 //
@@ -67,4 +72,27 @@ func Strtr(haystack string, params ...interface{}) string {
     }
 
     return haystack
+}
+
+func ChangeUrlParams(urlStr string, values ...interface{})string{
+    u, err := url.Parse(urlStr)
+    if err != nil {
+        log.Fatal(err)
+        return urlStr
+    }
+    if len(values) == 0 || len(values)%2 != 0{
+        return urlStr
+    }
+
+    q := u.Query()
+    key := ""
+    for k, v := range values {
+        if k%2 == 0 {
+            key = fmt.Sprint(v)
+        } else {
+            q.Set(key, fmt.Sprint(v))
+        }
+    }
+    u.RawQuery = q.Encode()
+    return u.String()
 }

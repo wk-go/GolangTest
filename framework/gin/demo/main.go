@@ -39,6 +39,7 @@ func main() {
 
     funcMap := template.FuncMap{
 		"urlTo": UrlTo,
+		"ChangeUrlParams" : ChangeUrlParams,
 	}
 	r.SetFuncMap(funcMap)
 
