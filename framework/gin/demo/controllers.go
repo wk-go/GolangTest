@@ -136,7 +136,7 @@ func (ctrl *ArticleController) Index(c *gin.Context){
 	if err !=nil || page <= 0{
 		page = 1
 	}
-	ctrl.DB.Offset((page-1)*perPage).Limit(perPage).Find(&models).Offset(0).Limit(1).Count(&count)
+	ctrl.DB.Offset((page-1)*perPage).Limit(perPage).Order("id DESC").Find(&models).Offset(0).Limit(1).Count(&count)
 
 	pager := paginater.New(count, perPage, page, 10)
 
