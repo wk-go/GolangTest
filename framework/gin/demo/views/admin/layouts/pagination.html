@@ -13,9 +13,7 @@ First">
             </a>
         </li>{{end}}
     {{range .Page.Pages}}
-    {{if eq .Num -1}}
-        ...
-    {{else}}
+    {{if ne .Num -1}}
         <li{{if .IsCurrent}} class="active"{{end}}><a href="{{ChangeUrlParams $.pageUrl "page" .Num}}">{{.Num}}</a></li>
     {{end}}
     {{end}}
