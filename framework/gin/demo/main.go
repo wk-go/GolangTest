@@ -16,11 +16,16 @@ import (
 
 var DB *gorm.DB
 var UrlTo func(string, ...interface{}) string
+var Config *GlobalConfig
 
 func main() {
 
+	Config := newConfig("conf/my.conf")
+	//Config.Save("conf/test.conf")
+
+
 	//db init
-	DB, err := gorm.Open("sqlite3", "cache/my.db")
+	DB, err := gorm.Open(Config.Database.Dialect, Config.Database.Dsn)
 	if err != nil {
 		panic(err)
 	}
@@ -30,9 +35,9 @@ func main() {
 	DB.AutoMigrate(&User{}, &Article{}, &Category{})
 	admin := &User{Username: "admin", Password: "123"}
 	DB.FirstOrCreate(&admin)
-	DB.LogMode(true)
+	DB.LogMode(Config.Database.Debug)
 
-
+	gin.SetMode(Config.Server.Mode)
 	r := gin.Default()
     routerManager := NewRouter(r)
     UrlTo = routerManager.UrlTo
@@ -105,7 +110,7 @@ func main() {
 	}
 	fmt.Println("Admin TestRouter Url:", routerManager.UrlTo("main.AdminController.TestRouter"))
     fmt.Println("Article Delete Url:", routerManager.UrlTo("main.ArticleController.Delete",":id", 100, "param1", "val1", "param2", "val2"))
-	r.Run() // listen and serve on 0.0.0.0:8080
+	r.Run(Config.Server.Listen) // listen and serve on 0.0.0.0:8080
 }
 
 func frontTemplates(templatesDir string, render multitemplate.Renderer) multitemplate.Renderer {
