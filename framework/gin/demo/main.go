@@ -91,7 +91,7 @@ func main() {
 		routerManager.Add("GET","/statistics", adminCtrl, "Statistics")
 		routerManager.Add("GET","/session-test", adminCtrl, "SessionTest")
 		//r.Handle("GET","/test-routerManager", adminCtrl.TestRouter)
-		routerManager.Add("GET","/test-routerManager", adminCtrl, "TestRouter")
+		routerManager.Add("GET","/test-router", adminCtrl, "TestRouter")
 
 		//article
 		/*adminGroup.GET("/article/index", articleCtrl.Index)
