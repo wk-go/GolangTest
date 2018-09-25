@@ -38,7 +38,7 @@ func main() {
     UrlTo = routerManager.UrlTo
 
     funcMap := template.FuncMap{
-		"urlTo": UrlTo,
+		"UrlTo": UrlTo,
 		"ChangeUrlParams" : ChangeUrlParams,
 	}
 	r.SetFuncMap(funcMap)
