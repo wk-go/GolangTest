@@ -164,6 +164,14 @@ func (ctrl *ArticleController) Update(c *gin.Context){
 	}
 	id := uint(idInt)
 	model := ctrl.getModel(id)
+	if c.Request.Method == "POST"{
+		if err := c.Bind(model); err == nil{
+			ctrl.DB.Save(model)
+		}else{
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
 	ctrl.HTML(c,200,"admin/article-edit", gin.H{"title": ctrl.Title, "model": model})
 }
 
