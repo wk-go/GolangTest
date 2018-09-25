@@ -7,7 +7,6 @@ import (
 	"strings"
 	"net/http"
 	"strconv"
-	"fmt"
 )
 
 type Controller struct {
@@ -45,7 +44,7 @@ func (ctrl *AdminController) HTML(c *gin.Context, code int, name string, obj gin
 
 func (ctrl *AdminController) MiddleWareSurroundings(c *gin.Context){
 	if !ctrl.isLogin(c) && c.Request.RequestURI != "/admin/login" && strings.Index(c.Request.RequestURI, "assets") == -1 {
-		c.Redirect(302, "/admin/login")
+		c.Redirect(302, UrlTo("main.AdminController.Login"))
 		return
 	}
 	c.Next()
@@ -87,7 +86,7 @@ func(ctrl *AdminController) TestRouter(c *gin.Context){
 
 func (ctrl * AdminController) Login(c *gin.Context){
 	if ctrl.isLogin(c){
-		c.Redirect(302,"/admin")
+		c.Redirect(302, UrlTo("main.AdminController.Index"))
 		return
 	}
 	username := c.PostForm("username")
@@ -102,7 +101,7 @@ func (ctrl * AdminController) Login(c *gin.Context){
 				session.Set("id", user.ID)
 				session.Set("username", user.Username)
 				session.Save()
-				c.Redirect(302, "/admin")
+				c.Redirect(302, UrlTo("main.AdminController.Index"))
 				//c.JSON(200, gin.H{"code": 1, "message": "登录成功"})
 				return
 			}
@@ -113,11 +112,11 @@ func (ctrl * AdminController) Login(c *gin.Context){
 	ctrl.HTML(c,200,"admin/login",gin.H{"title": "Login", "username": username, "password": password})
 }
 func (ctrl *AdminController) Logout(c *gin.Context){
-	session := ctrl.Session
+	session := sessions.Default(c)
 	session.Clear()
 	session.Save()
 	//c.JSON(200,gin.H{"message": "Logout Success"})
-	c.Redirect(302, "login")
+	c.Redirect(302, UrlTo("main.AdminController.Login"))
 }
 /*************** Article start *********************/
 type ArticleController struct{
@@ -147,7 +146,7 @@ func (ctrl *ArticleController) Create(c *gin.Context){
 	if c.Request.Method == "POST"{
 		if err := c.Bind(&model); err == nil {
 			ctrl.DB.Create(&model)
-			c.Redirect(302, fmt.Sprintf("/admin/article/update/%d", model.ID))
+			c.Redirect(302, UrlTo("main.ArticleController.Update", ":id", model.ID))
 			return
 		}else{
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -173,13 +172,13 @@ func (ctrl *ArticleController) Delete(c *gin.Context){
 	id, err := strconv.Atoi(idQuery)
 	if err != nil{
 		panic(err)
-		c.Redirect(302,"/admin/article/index")
+		c.Redirect(302,UrlTo("main.ArticleController.Index"))
 		return
 	}
 	model := Article{}
 	model.ID = uint(id)
 	ctrl.DB.Delete(&model)
-	c.Redirect(302,"/admin/article/index")
+	c.Redirect(302,UrlTo("main.ArticleController.Index"))
 }
 
 func (ctrl *ArticleController) getModel(id uint) *Article{

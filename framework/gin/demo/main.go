@@ -15,6 +15,7 @@ import (
 )
 
 var DB *gorm.DB
+var UrlTo func(string, ...interface{}) string
 
 func main() {
 
@@ -34,9 +35,10 @@ func main() {
 
 	r := gin.Default()
     routerManager := NewRouter(r)
+    UrlTo = routerManager.UrlTo
 
     funcMap := template.FuncMap{
-		"urlTo": routerManager.UrlTo,
+		"urlTo": UrlTo,
 	}
 	r.SetFuncMap(funcMap)
 
