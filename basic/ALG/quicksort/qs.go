@@ -36,10 +36,83 @@ func QuickSort(array []int, left, right int){
     QuickSort(array, left, i - 1)
     QuickSort(array, i + 1, right)
 }
+/////////////////////////////////////////////目前这情况迭代不一定比递归快
+type Stack struct {
+    stack []int
+    top   int
+}
+func NewStack() *Stack{
+    return &Stack{
+        stack: make([]int, 200),
+        top:   0,
+    }
+}
+
+func (s *Stack) Push(item1,item2 int){
+    s.stack[s.top]= item1
+    s.top += 1
+    s.stack[s.top]= item2
+    s.top += 1
+}
+func (s *Stack) Pop() (int,int){
+    if s.Empty(){
+        return -1, -1
+    }
+    s.top -= 2
+    return s.stack[s.top], s.stack[s.top+1]
+}
+
+func (s *Stack) Empty() bool{
+    return s.top == 0
+}
+
+func(s *Stack) Len() int{
+    return s.top
+}
+
+func (s *Stack) Top() int{
+    return s.top
+}
+
+func QuickSortIterator(array []int, left, right int){
+    stack := NewStack()
+    stack.Push(left,right)
+    for !stack.Empty() {
+        left,right = stack.Pop()
+        if left >= right{
+            continue
+        }
+        var (
+            i   int = left
+            j   int = right
+            key int = array[left]
+        )
+
+        for i < j {
+            for i < j && key <= array[j] {
+                j--
+            }
+            array[i] = array[j]
+            for i < j && key >= array[i] {
+                i++
+            }
+            array[j] = array[i]
+        }
+        array[i] = key
+        stack.Push(left, i-1)
+        stack.Push(i+1, right)
+    }
+}
 
 func main(){
     a := []int{10,23,4,5,6,35,33,66,9,7}
     fmt.Printf("%+v\n", a)
     QuickSort(a,0, len(a)-1)
+    fmt.Printf("%+v\n", a)
+
+
+    a = []int{10,23,4,5,6,35,33,66,9,7}
+    fmt.Printf("%+v\n", a)
+    QuickSortIterator(a,0, len(a)-1)
     fmt.Printf("%+v\n", a)
 }
