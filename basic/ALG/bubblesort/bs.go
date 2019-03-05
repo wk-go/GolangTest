@@ -11,11 +11,18 @@ import "fmt"
  */
 
 func BubbleSort(a []int){
+    flag := true
     for j:=len(a)-1;j > 0; j--{
+        flag = true
         for i:=0; i<j; i++{
             if a[i] > a[i+1]{
                 a[i], a[i+1] = a[i+1], a[i]
+                flag = false
+                continue
             }
+        }
+        if flag {
+            continue
         }
     }
 }
