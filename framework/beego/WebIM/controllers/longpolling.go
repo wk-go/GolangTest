@@ -15,7 +15,7 @@
 package controllers
 
 import (
-	"git.oschina.net/walkskyer/GolangTest/framework/beego/WebIM/models"
+	"golang_test/framework/beego/WebIM/models"
 )
 
 // LongPollingController handles long polling requests.
@@ -55,7 +55,7 @@ func (this *LongPollingController) Post() {
 		return
 	}
 
-	publish <- newEvent(models.EVENT_MESSAGE,roomId, uname, content)
+	publish <- newEvent(models.EVENT_MESSAGE, roomId, uname, content)
 }
 
 // Fetch method handles fetch archives requests for LongPollingController.
@@ -66,7 +66,7 @@ func (this *LongPollingController) Fetch() {
 		return
 	}
 
-	events := models.GetEvents(int(lastReceived),roomId)
+	events := models.GetEvents(int(lastReceived), roomId)
 	if len(events) > 0 {
 		this.Data["json"] = events
 		this.ServeJSON()
@@ -78,6 +78,6 @@ func (this *LongPollingController) Fetch() {
 	waitingList.PushBack(ch)
 	<-ch
 
-	this.Data["json"] = models.GetEvents(int(lastReceived),roomId)
+	this.Data["json"] = models.GetEvents(int(lastReceived), roomId)
 	this.ServeJSON()
 }

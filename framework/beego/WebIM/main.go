@@ -19,7 +19,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/beego/i18n"
 
-	"git.oschina.net/walkskyer/GolangTest/framework/beego/WebIM/controllers"
+	"golang_test/framework/beego/WebIM/controllers"
 )
 
 const (

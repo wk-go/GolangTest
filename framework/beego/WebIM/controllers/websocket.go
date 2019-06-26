@@ -21,7 +21,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/gorilla/websocket"
 
-	"git.oschina.net/walkskyer/GolangTest/framework/beego/WebIM/models"
+	"golang_test/framework/beego/WebIM/models"
 )
 
 // WebSocketController handles WebSocket requests.
@@ -88,7 +88,7 @@ func broadcastWebSocket(event models.Event) {
 	room := GetRoom(event.RoomId)
 
 	for sub := room.Subscribers.Front(); sub != nil; sub = sub.Next() {
-		if sub.Value.(*Subscriber).RoomId != event.RoomId{
+		if sub.Value.(*Subscriber).RoomId != event.RoomId {
 			continue
 		}
 		// Immediately send event to WebSocket users.

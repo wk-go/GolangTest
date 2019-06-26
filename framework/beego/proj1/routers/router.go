@@ -1,10 +1,10 @@
 package routers
 
 import (
-	"git.oschina.net/walkskyer/GolangTest/framework/beego/proj1/controllers"
 	"github.com/astaxie/beego"
+	"golang_test/framework/beego/proj1/controllers"
 )
 
 func init() {
-    beego.Router("/", &controllers.MainController{})
+	beego.Router("/", &controllers.MainController{})
 }

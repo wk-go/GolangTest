@@ -1,11 +1,10 @@
 package main
 
 import (
-	_ "git.oschina.net/walkskyer/GolangTest/framework/beego/proj1/routers"
 	"github.com/astaxie/beego"
+	_ "golang_test/framework/beego/proj1/routers"
 )
 
 func main() {
 	beego.Run()
 }
-

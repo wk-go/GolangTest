@@ -21,7 +21,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/gorilla/websocket"
 
-	"git.oschina.net/walkskyer/GolangTest/framework/beego/WebIM/models"
+	"golang_test/framework/beego/WebIM/models"
 )
 
 type Subscription struct {
@@ -29,49 +29,50 @@ type Subscription struct {
 	New     <-chan models.Event // New events coming in.
 }
 
-func newEvent(ep models.EventType, roomId, user,  msg string) models.Event {
+func newEvent(ep models.EventType, roomId, user, msg string) models.Event {
 	return models.Event{ep, roomId, user, int(time.Now().Unix()), msg}
 }
 
-func Join(user,roomId string, ws *websocket.Conn) {
-	beego.Info("User [",user,"] Join Room:", roomId)
-	subscribe <- Subscriber{Name: user, RoomId:roomId, Conn: ws}
+func Join(user, roomId string, ws *websocket.Conn) {
+	beego.Info("User [", user, "] Join Room:", roomId)
+	subscribe <- Subscriber{Name: user, RoomId: roomId, Conn: ws}
 }
 
 func Leave(user string) {
-	beego.Info("User [",user,"] leave Room")
+	beego.Info("User [", user, "] leave Room")
 	unsubscribe <- user
 }
 
 type Subscriber struct {
-	Name string
+	Name   string
 	RoomId string
-	Conn *websocket.Conn // Only for WebSocket users; otherwise nil.
+	Conn   *websocket.Conn // Only for WebSocket users; otherwise nil.
 }
 type Room struct {
-	Id          string    //room id
-	Name        string    //room name
-	Limit       int       //room User number limit
-	Count       int       //current user number
+	Id          string     //room id
+	Name        string     //room name
+	Limit       int        //room User number limit
+	Count       int        //current user number
 	Subscribers *list.List //user list
 }
-func (this *Room)Leave(username string){
-	for sub := this.Subscribers.Front();sub!=nil; sub = sub.Next(){
-		if sub.Value.(*Subscriber).Name == username{
+
+func (this *Room) Leave(username string) {
+	for sub := this.Subscribers.Front(); sub != nil; sub = sub.Next() {
+		if sub.Value.(*Subscriber).Name == username {
 			this.Subscribers.Remove(sub)
-			beego.Info("User [",sub.Value.(*Subscriber).Name,"] leave Room:",sub.Value.(*Subscriber).RoomId)
+			beego.Info("User [", sub.Value.(*Subscriber).Name, "] leave Room:", sub.Value.(*Subscriber).RoomId)
 		}
 	}
 }
 
-func newRoom(roomId string)  {
-	if(IsRoomExist(rooms, roomId)){
+func newRoom(roomId string) {
+	if IsRoomExist(rooms, roomId) {
 		return
 	}
-	room := Room{Id:roomId}
+	room := Room{Id: roomId}
 	rooms.PushBack(room)
 }
-func GetRoom(roomId string) *Room{
+func GetRoom(roomId string) *Room {
 	for sub := rooms.Front(); sub != nil; sub = sub.Next() {
 		if sub.Value.(*Room).Id == roomId {
 			return sub.Value.(*Room)
@@ -79,7 +80,7 @@ func GetRoom(roomId string) *Room{
 	}
 	return nil
 }
-func GetRoomElement(roomId string) *list.Element{
+func GetRoomElement(roomId string) *list.Element {
 	for sub := rooms.Front(); sub != nil; sub = sub.Next() {
 		if sub.Value.(*Room).Id == roomId {
 			return sub
@@ -107,7 +108,7 @@ var (
 	// Long polling waiting list.
 	waitingList = list.New()
 	subscribers = list.New()
-	rooms = list.New()
+	rooms       = list.New()
 )
 
 // This function handles all incoming chan messages.
@@ -149,7 +150,6 @@ func chatroom() {
 					//beego.Info(":::room.Subscribers:::",room.Subscribers)
 					room.Leave(unsub)
 					//beego.Info(":::room.Subscribers:::",room.Subscribers)
-
 
 					// Clone connection.
 					ws := user.Conn
