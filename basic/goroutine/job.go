@@ -1,12 +1,14 @@
 package main
+
 //可控的go程并发实践
 //需要注意的是worker的go程是需要阻塞的不然会出现fatal error: all goroutines are asleep - deadlock!错误
 import (
+	"fmt"
 	"log"
-	"time"
 	"os"
 	"strconv"
-	"fmt"
+	"sync"
+	"time"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -18,7 +20,7 @@ type Job interface {
 // Global variables
 //执行job(工人)
 type Worker struct {
-	Name		string
+	Name       string
 	WorkerPool chan *Worker
 	JobChannel chan Job
 	quit       chan bool
@@ -26,7 +28,7 @@ type Worker struct {
 
 func NewWorker(name string, workerPool chan *Worker) *Worker {
 	return &Worker{
-		Name:name,
+		Name:       name,
 		WorkerPool: workerPool,
 		JobChannel: make(chan Job),
 		quit:       make(chan bool),
@@ -46,7 +48,7 @@ func (w *Worker) Start() {
 			case <-w.quit:
 				log.Printf("worker[%s] stoped\n", w.Name)
 				return
-			//default://一定要阻塞不然会报错
+				//default://一定要阻塞不然会报错
 
 			}
 		}
@@ -63,9 +65,9 @@ func (w *Worker) Stop() {
 
 //调度器(车间主任)
 type Dispatcher struct {
-	Name string
+	Name              string
 	WorkerPool        chan *Worker
-	WorkerList			[]*Worker
+	WorkerList        []*Worker
 	JobQueue          chan Job
 	MaxWorkerPoolSize int
 	MaxJobQueueSize   int
@@ -74,7 +76,7 @@ type Dispatcher struct {
 
 func NewDispatcher(name string) *Dispatcher {
 	return &Dispatcher{
-		Name:name,
+		Name:              name,
 		MaxWorkerPoolSize: 1000,
 		MaxJobQueueSize:   1000,
 		quit:              make(chan bool),
@@ -85,7 +87,7 @@ func (d *Dispatcher) Run() {
 	d.WorkerPool = make(chan *Worker, d.MaxWorkerPoolSize)
 	d.JobQueue = make(chan Job, d.MaxJobQueueSize)
 	for i := 0; i < d.MaxWorkerPoolSize; i++ {
-		worker := NewWorker("w"+strconv.Itoa(i),d.WorkerPool)
+		worker := NewWorker("w"+strconv.Itoa(i), d.WorkerPool)
 		d.WorkerList = append(d.WorkerList, worker)
 		worker.Start()
 	}
@@ -99,10 +101,10 @@ func (d *Dispatcher) dispatch() {
 			worker := <-d.WorkerPool
 			worker.AddJob(job)
 		case <-d.quit:
-			log.Printf("Dispatcher[%s] stoped!\n",d.Name)
+			log.Printf("Dispatcher[%s] stoped!\n", d.Name)
 			return
-		//20180713昨天夜里仔细想想这个地方阻塞也可以啊
-		//default:
+			//20180713昨天夜里仔细想想这个地方阻塞也可以啊
+			//default:
 			//log.Println("dipathcer waiting!")
 			//还是得加个延时，不然没有任务空转的时候非常消耗cpu
 			//time.Sleep(time.Nanosecond*1)
@@ -125,14 +127,26 @@ func (d *Dispatcher) Stop() {
 
 ///////////////////////////////////////////////////////////////
 
+var SumCount = 0
+var mutex sync.Mutex
+
+//访问公共资源需要互斥锁
+func AddSumCount() {
+	mutex.Lock()
+	SumCount++
+	mutex.Unlock()
+}
+
 /////////////////test add/////////////////
 type Job1 struct {
 	Name  string
 	Count int
 }
+
 //实现Job接口
 func (j *Job1) Do() error {
 	j.Count++
+	AddSumCount()
 	log.Printf("%v:%d", j.Name, j.Count)
 	return nil
 }
@@ -141,8 +155,10 @@ type Job2 struct {
 	Name  string
 	Count int
 }
-func (j *Job2) add2(){
-	j.Count+=2
+
+func (j *Job2) add2() {
+	j.Count += 1
+	AddSumCount()
 }
 
 //实现Job接口
@@ -154,8 +170,8 @@ func (j *Job2) Do() error {
 
 func main() {
 	maxWorkerPoolSize := 6
-	if len(os.Args) >1 {
-		maxWorkerPoolSize,_ = strconv.Atoi(os.Args[1])
+	if len(os.Args) > 1 {
+		maxWorkerPoolSize, _ = strconv.Atoi(os.Args[1])
 	}
 	log.Println("maxWorkPoolSize:", maxWorkerPoolSize)
 
@@ -179,16 +195,16 @@ func main() {
 	t8 := time.NewTimer(time.Millisecond * 1)
 
 	// 8个job
-	job1 := &Job1{Name: "job1-1", Count: 0,}
-	job2 := &Job1{Name: "job1-2", Count: 0,}
-	job3 := &Job1{Name: "job1-3", Count: 0,}
-	job4 := &Job1{Name: "job1-4", Count: 0,}
-	job5 := &Job1{Name: "job1-5", Count: 0,}
-	job6 := &Job1{Name: "job1-6", Count: 0,}
-	job7 := &Job1{Name: "job1-7", Count: 0,}
-	job8 := &Job2{Name: "job2-8", Count: 0,}
+	job1 := &Job1{Name: "job1-1", Count: 0}
+	job2 := &Job1{Name: "job1-2", Count: 0}
+	job3 := &Job1{Name: "job1-3", Count: 0}
+	job4 := &Job1{Name: "job1-4", Count: 0}
+	job5 := &Job1{Name: "job1-5", Count: 0}
+	job6 := &Job1{Name: "job1-6", Count: 0}
+	job7 := &Job1{Name: "job1-7", Count: 0}
+	job8 := &Job2{Name: "job2-8", Count: 0}
 
-	tX := time.NewTimer(time.Second * 10)
+	tX := time.NewTimer(time.Second * 2)
 For:
 	for {
 		select {
@@ -226,23 +242,25 @@ For:
 
 		case <-tX.C:
 			dispatcher.Stop()
+			time.Sleep(time.Millisecond * 1000)
 			break For
-		//20180713 现在把所有的default都去掉也不报错了。
-		//default:
+			//20180713 现在把所有的default都去掉也不报错了。
+			//default:
 			//log.Println("main waiting!")
 			//time.Sleep(time.Millisecond*10)
 
 		}
 	}
-
 	fmt.Println("=====================================================================")
-	job1.Do()
-	job2.Do()
-	job3.Do()
-	job4.Do()
-	job5.Do()
-	job6.Do()
-	job7.Do()
-	job8.Do()
+	log.Printf("Job1:%v", job1.Count)
+	log.Printf("Job2:%v", job2.Count)
+	log.Printf("Job3:%v", job3.Count)
+	log.Printf("Job4:%v", job4.Count)
+	log.Printf("Job5:%v", job5.Count)
+	log.Printf("Job6:%v", job6.Count)
+	log.Printf("Job7:%v", job7.Count)
+	log.Printf("Job8:%v", job8.Count)
+
 	log.Println("maxWorkPoolSize:", maxWorkerPoolSize)
+	log.Println("Sum Count:", SumCount)
 }
