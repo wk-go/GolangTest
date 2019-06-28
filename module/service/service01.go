@@ -31,6 +31,7 @@ func main() {
 		Name:        "xxxGoServiceTestxxx",
 		DisplayName: "xxx Go Service Test xxx",
 		Description: "xxx This is a test Go service. xxx",
+		Arguments:   []string{"-a", "paramA", "-b", "paramB", "--help"},
 	}
 
 	prg := &program{}
