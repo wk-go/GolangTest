@@ -7,6 +7,7 @@ import (
 	"github.com/kardianos/service"
 )
 
+//windows下需要管理员权限
 var logger service.Logger
 
 type program struct{}
@@ -43,14 +44,20 @@ func main() {
 	}
 	if len(os.Args) > 1 {
 		if os.Args[1] == "install" {
-			s.Install()
-			log.Println("服务安装成功")
+			if err = s.Install(); err != nil {
+				log.Println(err)
+			} else {
+				log.Println("服务安装成功")
+			}
 			return
 		}
 
 		if os.Args[1] == "remove" {
-			s.Uninstall()
-			log.Println("服务卸载成功")
+			if err = s.Uninstall(); err != nil {
+				log.Println(err)
+			} else {
+				log.Println("服务卸载成功")
+			}
 			return
 		}
 	}
