@@ -20,7 +20,10 @@ func main() {
 			case event := <-watcher.Events:
 				log.Println("event:", event)
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					log.Println("modified file:", event.Name)
+					log.Println("[Modified file]:", event.Name)
+				}
+				if event.Op&fsnotify.Create == fsnotify.Create {
+					log.Println("[Created file]:", event.Name)
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
