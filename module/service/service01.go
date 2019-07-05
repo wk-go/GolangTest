@@ -19,10 +19,11 @@ func (p *program) Start(s service.Service) error {
 }
 func (p *program) run() {
 	// Do work here
-	log.Println("hello")
+	log.Println("Running")
 }
 func (p *program) Stop(s service.Service) error {
 	// Stop should not block. Return with a few seconds.
+	log.Println("Stopped")
 	return nil
 }
 
@@ -43,7 +44,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(os.Args) > 1 {
+	if len(os.Args) > 2 {
 		if os.Args[1] == "install" {
 			if err = s.Install(); err != nil {
 				log.Println(err)
