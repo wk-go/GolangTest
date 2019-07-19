@@ -23,30 +23,7 @@ func main() {
 
 	// Connect function to application activate event
 	application.Connect("activate", func() {
-		log.Println("application activate")
-
-		// Get the GtkBuilder UI definition in the glade file.
-		builder, err := gtk.BuilderNewFromFile("main.glade")
-		errorCheck(err)
-
-		// Map the handlers to callback functions, and connect the signals
-		// to the Builder.
-		signals := map[string]interface{}{
-			"on_main_window_destroy": onMainWindowDestroy,
-		}
-		builder.ConnectSignals(signals)
-
-		// Get the object with the id of "main_window".
-		obj, err := builder.GetObject("main_window")
-		errorCheck(err)
-
-		// Verify that the object is a pointer to a gtk.ApplicationWindow.
-		win, err := isWindow(obj)
-		errorCheck(err)
-
-		// Show the Window and all of its components.
-		win.Show()
-		application.AddWindow(win)
+		render(application)
 	})
 
 	// Connect function to application shutdown event, this is not required.
@@ -56,6 +33,62 @@ func main() {
 
 	// Launch the application
 	os.Exit(application.Run(os.Args))
+}
+
+func render(application *gtk.Application) {
+	log.Println("application activate")
+
+	// Get the GtkBuilder UI definition in the glade file.
+	builder, err := gtk.BuilderNewFromFile("main.glade")
+	errorCheck(err)
+
+	// Map the handlers to callback functions, and connect the signals
+	// to the Builder.
+	signals := map[string]interface{}{
+		"on_main_window_destroy": onMainWindowDestroy,
+	}
+	builder.ConnectSignals(signals)
+
+	// Get the object with the id of "main_window".
+	obj, err := builder.GetObject("main_window")
+	errorCheck(err)
+
+	// Verify that the object is a pointer to a gtk.ApplicationWindow.
+	win, err := isWindow(obj)
+	errorCheck(err)
+
+	obj, err = builder.GetObject("button1")
+	btn1, err := isButton(obj)
+	errorCheck(err)
+	btn1.Connect("clicked", func() {
+		label, _ := btn1.GetLabel()
+		log.Println("click the button:", label)
+	})
+
+	obj, err = builder.GetObject("button2")
+	btn2, err := isButton(obj)
+	errorCheck(err)
+	btn2.Connect("clicked", func() {
+		dialog, _ := gtk.FileChooserDialogNewWith1Button("Choose a file", win, gtk.FILE_CHOOSER_ACTION_OPEN, "Select", 1)
+		res := dialog.Run()
+		if res == gtk.RESPONSE_ACCEPT {
+			log.Println(res)
+			filename := dialog.GetFilename()
+			log.Println("filename:", filename)
+		}
+	})
+
+	// Show the Window and all of its components.
+	win.Show()
+	application.AddWindow(win)
+}
+
+func isButton(obj glib.IObject) (*gtk.Button, error) {
+	// Make type assertion (as per gtk.go).
+	if o, ok := obj.(*gtk.Button); ok {
+		return o, nil
+	}
+	return nil, errors.New("not a *gtk.Window")
 }
 
 func isWindow(obj glib.IObject) (*gtk.Window, error) {
