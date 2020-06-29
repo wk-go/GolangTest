@@ -3,4 +3,6 @@ vendor/
 *.iml
 *.exe
 *.db
+*.dll
+*.so
 .DS_Store
