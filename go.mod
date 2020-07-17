@@ -30,6 +30,7 @@ require (
 	github.com/lxn/walk v0.0.0-20190619151032-86d8802c197a
 	github.com/mattn/go-runewidth v0.0.4
 	github.com/mattn/go-sqlite3 v1.10.0
+	github.com/mholt/archiver/v3 v3.3.0 // indirect
 	github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762
 	github.com/otiai10/mint v1.2.4 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
