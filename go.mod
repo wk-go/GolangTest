@@ -38,6 +38,7 @@ require (
 	github.com/therecipe/qt v0.0.0-20190813185824-0b997e8d18a6
 	github.com/tiaguinho/gosoap v1.2.0
 	github.com/toqueteos/webbrowser v1.1.0
+	github.com/tuotoo/qrcode v0.0.0-20190222102259-ac9c44189bf2 // indirect
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
