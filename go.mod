@@ -19,6 +19,7 @@ require (
 	github.com/go-ini/ini v1.42.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-vgo/robotgo v0.0.0-20190623134552-a099d228ba3b
+	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
 	github.com/gorilla/websocket v1.4.0
 	github.com/gotk3/gotk3 v0.0.0-20190620081259-6dcdf9e5c51e
 	github.com/henrylee2cn/mahonia v0.0.0-20150715080413-be6deb105fbc
@@ -29,17 +30,26 @@ require (
 	github.com/lxn/walk v0.0.0-20190619151032-86d8802c197a
 	github.com/mattn/go-runewidth v0.0.4
 	github.com/mattn/go-sqlite3 v1.10.0
+	github.com/mholt/archiver/v3 v3.3.0 // indirect
 	github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762
 	github.com/otiai10/mint v1.2.4 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	github.com/robfig/cron v1.2.0
+	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
-	github.com/therecipe/qt v0.0.0-20190813185824-0b997e8d18a6
+	github.com/therecipe/qt v0.0.0-20190914193131-4c875570321e
+	github.com/therecipe/qt/internal/binding/files/docs v0.0.0-20190914193131-4c875570321e // indirect
+	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20190914193131-4c875570321e // indirect
+	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20190914193131-4c875570321e // indirect
 	github.com/tiaguinho/gosoap v1.2.0
 	github.com/toqueteos/webbrowser v1.1.0
+	github.com/zserge/webview v0.0.0-20200410160118-50e4bcc420ab
+	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7 // indirect
 	github.com/tuotoo/qrcode v0.0.0-20190222102259-ac9c44189bf2 // indirect
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3 // indirect
+	golang.org/x/tools v0.0.0-20190917032747-2dc213d980bc // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/ini.v1 v1.44.0 // indirect
