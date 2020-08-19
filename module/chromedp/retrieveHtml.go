@@ -12,7 +12,7 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	ts := httptest.NewServer(writeHTML(`
+	ts := httptest.NewServer(writeToHTML(`
 <body>
 <p id="content" onclick="changeText()">Original content.</p>
 <script>
@@ -44,7 +44,7 @@ function changeText() {
 	fmt.Println(document)
 }
 
-func writeHTML(s string) http.Handler {
+func writeToHTML(s string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, s)
 	})
