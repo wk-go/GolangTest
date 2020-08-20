@@ -30,26 +30,51 @@ import (
 
 func main() {
 	log.Printf("example:")
-	ExampleListenTarget_acceptAlert()
-	//ByJSPath()
-	//Emulate()
-	//ConsoleLog()
-	//ManyTabs()
-	//Title()
-	//WaitNewTarget()
-	//DocumentDump()
-	//RetrieveHTML()
-	//Download1()
-	//Download2()
-	//Testiframe()
-	//Click()
-	//Cookie()
-	//Evaluate()
-	//Headers()
-	//Keys()
-	//Logic()
-	//Remote()
-
+	cmd := "ExampleListenTarget_acceptAlert"
+	args := os.Args
+	if len(args) >= 2 {
+		cmd = os.Args[1]
+	}
+	switch cmd {
+	case "ExampleListenTarget_acceptAlert":
+		ExampleListenTarget_acceptAlert()
+	case "ByJSPath":
+		ByJSPath()
+	case "Emulate":
+		Emulate()
+	case "ConsoleLog":
+		ConsoleLog()
+	case "ManyTabs":
+		ManyTabs()
+	case "Title":
+		Title()
+	case "WaitNewTarget":
+		WaitNewTarget()
+	case "DocumentDump":
+		DocumentDump()
+	case "RetrieveHTML":
+		RetrieveHTML()
+	case "Download1":
+		Download1()
+	case "Download2":
+		Download2()
+	case "Testiframe":
+		Testiframe()
+	case "Click":
+		Click()
+	case "Cookie":
+		Cookie()
+	case "Evaluate":
+		Evaluate()
+	case "Headers":
+		Headers()
+	case "Keys":
+		Keys()
+	case "Logic":
+		Logic()
+	case "Remote":
+		Remote()
+	}
 }
 
 //监听并自动关闭弹出的alert对话框。其中也包括了ExecAllocator的用法
@@ -220,8 +245,9 @@ func ConsoleLog() {
 
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(ts.URL),
-		chromedp.Sleep(5*time.Second), //在打开的chrome窗口上有提示：chrome正受到自动测试软件的控制
+		chromedp.Sleep(15*time.Second), //在打开的chrome窗口上有提示：chrome正受到自动测试软件的控制
 		chromedp.WaitVisible("#jsFinished", chromedp.ByID),
+		chromedp.Sleep(15*time.Second),
 	); err != nil {
 		panic(err)
 	}
@@ -881,7 +907,7 @@ func listAwesomeGoProjects(ctx context.Context, sect string) (map[string]project
 	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	sel := fmt.Sprintf(`//p[text()[contains(., '%s')]]`, sect)
+	sel := fmt.Sprintf(`case "p[text": p[text()[contains(., '%s')]]`, sect)
 
 	// navigate
 	if err := chromedp.Run(ctx, chromedp.Navigate(`https://github.com/avelino/awesome-go`)); err != nil {
