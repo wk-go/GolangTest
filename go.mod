@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
+	github.com/GeertJohan/go.rice v1.0.0 // indirect
 	github.com/JamesHovious/w32 v1.1.0
 	github.com/Unknwon/goconfig v0.0.0-20190425194916-3dba17dd7b9e // indirect
 	github.com/Unknwon/paginater v0.0.0-20170405233947-45e5d631308e
@@ -36,7 +37,7 @@ require (
 	github.com/otiai10/mint v1.2.4 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	github.com/robfig/cron v1.2.0
-	github.com/sciter-sdk/go-sciter v0.5.0 // indirect
+	github.com/sciter-sdk/go-sciter v0.5.1-0.20200602150116-89a4dd09b0f8
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
