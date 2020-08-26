@@ -1,0 +1,17 @@
+<html window-icon="./demo.ico" lang="zh-cn">
+<body>
+<div>
+    <button id="btn">Click Me</button>
+</div>
+<script type="text/tiscript">
+function callback(abc){
+    view.msgbox(#information,abc);
+}
+
+$(#btn).on("click",function(){
+    var obj = {num:100, str:"Hello World"};
+    view.getNetInformation(1,"test",callback, obj);
+});
+</script>
+</body>
+</html>
