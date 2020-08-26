@@ -1,9 +1,11 @@
-<html window-icon="./demo.ico" lang="zh-cn">
+<html lang="zh-cn">
 <body>
 <div>
     <button id="btn">Click Me</button>
 </div>
 <script type="text/tiscript">
+//只能使用url，不能使用本地文件
+view.windowIcon = "https://www.baidu.com/img/baidu_85beaf5496f291521eb75ba38eacbd87.svg";
 function callback(abc){
     view.msgbox(#information,abc);
 }
