@@ -21,6 +21,7 @@ require (
 	github.com/go-ini/ini v1.42.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-vgo/robotgo v0.0.0-20190623134552-a099d228ba3b
+	github.com/gonutz/wui/v2 v2.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
 	github.com/gorilla/websocket v1.4.0
 	github.com/gotk3/gotk3 v0.0.0-20190620081259-6dcdf9e5c51e
