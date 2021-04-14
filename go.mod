@@ -49,6 +49,7 @@ require (
 	github.com/tiaguinho/gosoap v1.2.0
 	github.com/toqueteos/webbrowser v1.1.0
 	github.com/tuotoo/qrcode v0.0.0-20190222102259-ac9c44189bf2 // indirect
+	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	github.com/zserge/webview v0.0.0-20200410160118-50e4bcc420ab
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/tools v0.1.0 // indirect
