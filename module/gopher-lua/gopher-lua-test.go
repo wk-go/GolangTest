@@ -14,6 +14,7 @@ var (
 		"stringTest":    stringTest,
 		"fileTest":      fileTest,
 		"callGoFromLua": callGoFromLua,
+		"callLuaFromGo": callLuaFromGo,
 	}
 )
 
@@ -78,4 +79,25 @@ func callGoFromLua() {
 		filename = "double.lua"
 	}
 	DoFile(L, filename)
+}
+
+func callLuaFromGo() {
+	L := lua.NewState()
+	defer L.Close()
+	DoFile(L, "lua_double.lua")
+	if err := L.CallByParam(lua.P{
+		Fn:      L.GetGlobal("lua_double"),
+		NRet:    1,
+		Protect: true,
+	}, lua.LNumber(30)); err != nil {
+		panic(err)
+	}
+	ret := L.Get(-1) // returned value
+	L.Pop(1)
+	fmt.Println("ret from lua:", ret, " ret.type():", ret.Type())
+	if num, ok := ret.(lua.LNumber); ok {
+		fmt.Printf("num: %T(%v)\n", num, num)
+		num2 := float64(num)
+		fmt.Printf("num2: %T(%v)\n", num2, num2)
+	}
 }
