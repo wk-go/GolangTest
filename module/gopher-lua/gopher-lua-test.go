@@ -12,6 +12,7 @@ var (
 	filename   string
 	commandMap = map[string]func(){
 		"stringTest": stringTest,
+		"fileTest":   fileTest,
 	}
 )
 
@@ -31,7 +32,7 @@ func main() {
 }
 func usage() {
 	fmt.Fprintf(os.Stderr, `gopher-lua-test:
-Usage: gopher-lua-test [-hvVtTq] [-s signal] [-c filename] [-p prefix] [-g directives]
+Usage: gopher-lua-test [-c command] [-f filename]
 
 Options:
 `)
@@ -42,6 +43,17 @@ func stringTest() {
 	L := lua.NewState()
 	defer L.Close()
 	if err := L.DoString(`print("hello from lua")`); err != nil {
+		panic(err)
+	}
+}
+
+func fileTest() {
+	L := lua.NewState()
+	defer L.Close()
+	if filename == "" {
+		filename = "hello.lua"
+	}
+	if err := L.DoFile("lua/" + filename); err != nil {
 		panic(err)
 	}
 }
