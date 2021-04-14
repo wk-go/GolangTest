@@ -11,8 +11,9 @@ var (
 	command    string
 	filename   string
 	commandMap = map[string]func(){
-		"stringTest": stringTest,
-		"fileTest":   fileTest,
+		"stringTest":    stringTest,
+		"fileTest":      fileTest,
+		"callGoFromLua": callGoFromLua,
 	}
 )
 
@@ -47,13 +48,34 @@ func stringTest() {
 	}
 }
 
+// run a lua file
+func DoFile(L *lua.LState, f string) {
+	if err := L.DoFile("lua/" + f); err != nil {
+		panic(err)
+	}
+}
+
 func fileTest() {
 	L := lua.NewState()
 	defer L.Close()
 	if filename == "" {
 		filename = "hello.lua"
 	}
-	if err := L.DoFile("lua/" + filename); err != nil {
-		panic(err)
+	DoFile(L, filename)
+}
+
+func Double(L *lua.LState) int {
+	lv := L.ToInt(1)            /* get argument */
+	L.Push(lua.LNumber(lv * 2)) /* push result */
+	return 1                    /* number of results */
+}
+
+func callGoFromLua() {
+	L := lua.NewState()
+	defer L.Close()
+	L.SetGlobal("double", L.NewFunction(Double)) /* Original lua_setglobal uses stack... */
+	if filename == "" {
+		filename = "double.lua"
 	}
+	DoFile(L, filename)
 }
