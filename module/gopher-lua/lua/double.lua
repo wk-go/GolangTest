@@ -6,4 +6,4 @@
 -- To change this template use File | Settings | File Templates.
 --
 
-print(double(60))
+print("run golang func double() in lua:60*2="..double(60))
