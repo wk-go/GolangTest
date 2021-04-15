@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	lua "github.com/yuin/gopher-lua"
+	"golang_test/module/gopher-lua/mymodule"
 	"os"
 )
 
@@ -15,6 +16,7 @@ var (
 		"fileTest":      fileTest,
 		"callGoFromLua": callGoFromLua,
 		"callLuaFromGo": callLuaFromGo,
+		"callGoModule":  callGoModule,
 	}
 )
 
@@ -100,4 +102,12 @@ func callLuaFromGo() {
 		num2 := float64(num)
 		fmt.Printf("num2: %T(%v)\n", num2, num2)
 	}
+}
+
+func callGoModule() {
+	L := lua.NewState()
+	defer L.Close()
+	L.PreloadModule("mymodule", mymodule.Loader)
+	L.PreloadModule("mymodule2", mymodule.Loader2)
+	DoFile(L, "call_go_module.lua")
 }
