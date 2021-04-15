@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	lua "github.com/yuin/gopher-lua"
+	"golang_test/module/gopher-lua/data"
 	"golang_test/module/gopher-lua/mymodule"
 	"os"
 )
@@ -17,6 +18,7 @@ var (
 		"callGoFromLua": callGoFromLua,
 		"callLuaFromGo": callLuaFromGo,
 		"callGoModule":  callGoModule,
+		"useGoStruct":   useGoStruct,
 	}
 )
 
@@ -110,4 +112,18 @@ func callGoModule() {
 	L.PreloadModule("mymodule", mymodule.Loader)
 	L.PreloadModule("mymodule2", mymodule.Loader2)
 	DoFile(L, "call_go_module.lua")
+}
+
+func useGoStruct() {
+	L := lua.NewState()
+	defer L.Close()
+	data.RegisterPersonType(L)
+	if err := L.DoString(`
+        p = person.new("Steeve")
+        print(p:name()) -- "Steeve"
+        p:name("Alice")
+        print(p:name()) -- "Alice"
+    `); err != nil {
+		panic(err)
+	}
 }
