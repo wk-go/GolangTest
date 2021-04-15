@@ -6,6 +6,7 @@ import (
 	lua "github.com/yuin/gopher-lua"
 	"golang_test/module/gopher-lua/data"
 	"golang_test/module/gopher-lua/mymodule"
+	luar "layeh.com/gopher-luar"
 	"os"
 )
 
@@ -13,12 +14,13 @@ var (
 	command    string
 	filename   string
 	commandMap = map[string]func(){
-		"stringTest":    stringTest,
-		"fileTest":      fileTest,
-		"callGoFromLua": callGoFromLua,
-		"callLuaFromGo": callLuaFromGo,
-		"callGoModule":  callGoModule,
-		"useGoStruct":   useGoStruct,
+		"stringTest":        stringTest,
+		"fileTest":          fileTest,
+		"callGoFromLua":     callGoFromLua,
+		"callLuaFromGo":     callLuaFromGo,
+		"callGoModule":      callGoModule,
+		"useGoStruct":       useGoStruct,
+		"useGoStructByLuar": useGoStructByLuar,
 	}
 )
 
@@ -126,4 +128,29 @@ func useGoStruct() {
     `); err != nil {
 		panic(err)
 	}
+}
+
+func useGoStructByLuar() {
+	L := lua.NewState()
+	defer L.Close()
+
+	script := `
+print("Hello from Lua, " .. u.Name .. "!".."token:"..u.Token(u))
+u:SetToken("12345")
+print("Hello from Lua, " .. u.Name .. "!".."token changed:"..u.Token(u))
+`
+
+	u := &data.User{
+		Name: "Tim",
+	}
+	u.SetToken("init_token")
+	L.SetGlobal("u", luar.New(L, u))
+	if err := L.DoString(script); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Lua set your token to:", u.Token())
+	// Output:
+	// Hello from Lua, Tim!
+	// Lua set your token to: 12345
 }
