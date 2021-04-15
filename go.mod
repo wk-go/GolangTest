@@ -58,4 +58,5 @@ require (
 	gopkg.in/ini.v1 v1.44.0 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
+	layeh.com/gopher-luar v1.0.8 // indirect
 )
