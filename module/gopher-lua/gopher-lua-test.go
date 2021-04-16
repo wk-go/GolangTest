@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 	"golang_test/module/gopher-lua/data"
 	"golang_test/module/gopher-lua/mymodule"
@@ -21,6 +22,7 @@ var (
 		"callGoModule":      callGoModule,
 		"useGoStruct":       useGoStruct,
 		"useGoStructByLuar": useGoStructByLuar,
+		"gluamapperTest":    gluamapperTest,
 	}
 )
 
@@ -153,4 +155,42 @@ print("Hello from Lua, " .. u.Name .. "!".."token changed:"..u.Token(u))
 	// Output:
 	// Hello from Lua, Tim!
 	// Lua set your token to: 12345
+}
+
+// test module: github.com/yuin/gluamapper
+func gluamapperTest() {
+	type Role struct {
+		Name string
+	}
+
+	type Person struct {
+		Name      string
+		Age       int
+		WorkPlace string
+		Role      []*Role
+	}
+
+	L := lua.NewState()
+	if err := L.DoString(`
+person = {
+  name = "Michel",
+  age  = "31", -- weakly input
+  work_place = "San Jose",
+  role = {
+    {
+      name = "Administrator"
+    },
+    {
+      name = "Operator"
+    }
+  }
+}
+`); err != nil {
+		panic(err)
+	}
+	var person Person
+	if err := gluamapper.Map(L.GetGlobal("person").(*lua.LTable), &person); err != nil {
+		panic(err)
+	}
+	fmt.Printf("Name:%s, Age:%d", person.Name, person.Age)
 }
