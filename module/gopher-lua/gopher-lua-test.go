@@ -17,15 +17,15 @@ var (
 	command    string
 	filename   string
 	commandMap = map[string]func(){
-		"stringTest":        stringTest,
-		"fileTest":          fileTest,
-		"callGoFromLua":     callGoFromLua,
-		"callLuaFromGo":     callLuaFromGo,
-		"callGoModule":      callGoModule,
-		"useGoStruct":       useGoStruct,
-		"useGoStructByLuar": useGoStructByLuar,
-		"gluamapperTest":    gluamapperTest,
-		"codeToShareTest":   codeToShareTest,
+		"stringTest":        stringTest,        // Do string
+		"fileTest":          fileTest,          //Do file
+		"callGoFromLua":     callGoFromLua,     // call lua function
+		"callLuaFromGo":     callLuaFromGo,     // call lua function from go
+		"callGoModule":      callGoModule,      // use module as lua module
+		"useGoStruct":       useGoStruct,       // gopher-lua origin struct convert
+		"useGoStructByLuar": useGoStructByLuar, //go struct convert to  lua table
+		"gluamapperTest":    gluamapperTest,    //lua table convert to  go struct
+		"codeToShareTest":   codeToShareTest,   //共享预编译脚本
 	}
 )
 
@@ -140,9 +140,9 @@ func useGoStructByLuar() {
 	defer L.Close()
 
 	script := `
-print("Hello from Lua, " .. u.Name .. "!".."token:"..u.Token(u))
+print("Hello from Lua, " .. u.Name .. "!".."token:"..u:Token()) -- u.Token(u)
 u:SetToken("12345")
-print("Hello from Lua, " .. u.Name .. "!".."token changed:"..u.Token(u))
+print("Hello from Lua, " .. u.Name .. "!".."token changed:"..u:Token())
 `
 
 	u := &data.User{
