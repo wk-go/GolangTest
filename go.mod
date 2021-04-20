@@ -21,6 +21,7 @@ require (
 	github.com/go-ini/ini v1.42.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-vgo/robotgo v0.0.0-20190623134552-a099d228ba3b
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gonutz/wui/v2 v2.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
 	github.com/gorilla/websocket v1.4.0
@@ -53,8 +54,12 @@ require (
 	github.com/yuin/gluamapper v0.0.0-20150323120927-d836955830e7 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	github.com/zserge/webview v0.0.0-20200410160118-50e4bcc420ab
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/net v0.0.0-20210415231046-e915ea6b2b7d
+	golang.org/x/sys v0.0.0-20210415045647-66c3f260301c // indirect
 	golang.org/x/tools v0.1.0 // indirect
+	google.golang.org/genproto v0.0.0-20210416161957-9910b6c460de // indirect
+	google.golang.org/grpc v1.37.0 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/ini.v1 v1.44.0 // indirect
