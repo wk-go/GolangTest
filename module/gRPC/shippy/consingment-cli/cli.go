@@ -62,4 +62,12 @@ func main() {
 
 	// 新货物是否托运成功
 	log.Printf("created: %t", resp.Created)
+
+	resp, err = client.GetConsignments(context.Background(), &pb.GetRequest{})
+	if err != nil {
+		log.Fatalf("failed to list consignments: %v", err)
+	}
+	for _, c := range resp.Consignments {
+		log.Printf("%+v", c)
+	}
 }
