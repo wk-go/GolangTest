@@ -14,28 +14,33 @@ require (
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/chromedp/chromedp v0.5.3 // indirect
-	github.com/fsnotify/fsnotify v1.4.7
+	github.com/coreos/etcd v3.3.17+incompatible // indirect
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-contrib/multitemplate v0.0.0-20190528082104-30e424939505
 	github.com/gin-contrib/sessions v0.0.0-20190512062852-3cb4c4f2d615
 	github.com/gin-gonic/gin v1.4.0
-	github.com/go-ini/ini v1.42.0
+	github.com/go-ini/ini v1.44.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-vgo/robotgo v0.0.0-20190623134552-a099d228ba3b
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gonutz/wui/v2 v2.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
-	github.com/gorilla/websocket v1.4.0
+	github.com/gorilla/websocket v1.4.1
 	github.com/gotk3/gotk3 v0.0.0-20190620081259-6dcdf9e5c51e
 	github.com/henrylee2cn/mahonia v0.0.0-20150715080413-be6deb105fbc
 	github.com/jinzhu/gorm v1.9.9
 	github.com/jroimartin/gocui v0.4.0
 	github.com/kardianos/service v1.0.0
 	github.com/kr/pretty v0.1.0 // indirect
+	github.com/lucas-clemente/quic-go v0.20.1 // indirect
 	github.com/lxn/walk v0.0.0-20190619151032-86d8802c197a
 	github.com/mattn/go-runewidth v0.0.4
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mholt/archiver/v3 v3.3.0 // indirect
+	github.com/micro/go-micro v1.18.0 // indirect
+	github.com/micro/protobuf v0.0.0-20180321161605-ebd3be6d4fdb // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/nats-io/nats.go v1.10.0 // indirect
 	github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762
 	github.com/otiai10/mint v1.2.4 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
