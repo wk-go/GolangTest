@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
+	"github.com/yuin/gopher-lua/parse"
 	"golang_test/module/gopher-lua/data"
 	"golang_test/module/gopher-lua/mymodule"
 	luar "layeh.com/gopher-luar"
@@ -15,14 +17,15 @@ var (
 	command    string
 	filename   string
 	commandMap = map[string]func(){
-		"stringTest":        stringTest,
-		"fileTest":          fileTest,
-		"callGoFromLua":     callGoFromLua,
-		"callLuaFromGo":     callLuaFromGo,
-		"callGoModule":      callGoModule,
-		"useGoStruct":       useGoStruct,
-		"useGoStructByLuar": useGoStructByLuar,
-		"gluamapperTest":    gluamapperTest,
+		"stringTest":        stringTest,        // Do string
+		"fileTest":          fileTest,          //Do file
+		"callGoFromLua":     callGoFromLua,     // call lua function
+		"callLuaFromGo":     callLuaFromGo,     // call lua function from go
+		"callGoModule":      callGoModule,      // use module as lua module
+		"useGoStruct":       useGoStruct,       // gopher-lua origin struct convert
+		"useGoStructByLuar": useGoStructByLuar, //go struct convert to  lua table
+		"gluamapperTest":    gluamapperTest,    //lua table convert to  go struct
+		"codeToShareTest":   codeToShareTest,   //共享预编译脚本
 	}
 )
 
@@ -137,9 +140,9 @@ func useGoStructByLuar() {
 	defer L.Close()
 
 	script := `
-print("Hello from Lua, " .. u.Name .. "!".."token:"..u.Token(u))
+print("Hello from Lua, " .. u.Name .. "!".."token:"..u:Token()) -- u.Token(u)
 u:SetToken("12345")
-print("Hello from Lua, " .. u.Name .. "!".."token changed:"..u.Token(u))
+print("Hello from Lua, " .. u.Name .. "!".."token changed:"..u:Token())
 `
 
 	u := &data.User{
@@ -193,4 +196,42 @@ person = {
 		panic(err)
 	}
 	fmt.Printf("Name:%s, Age:%d", person.Name, person.Age)
+}
+
+// CompileLua reads the passed lua file from disk and compiles it.
+func CompileLua(filePath string) (*lua.FunctionProto, error) {
+	file, err := os.Open(filePath)
+	defer file.Close()
+	if err != nil {
+		return nil, err
+	}
+	reader := bufio.NewReader(file)
+	chunk, err := parse.Parse(reader, filePath)
+	if err != nil {
+		return nil, err
+	}
+	proto, err := lua.Compile(chunk, filePath)
+	if err != nil {
+		return nil, err
+	}
+	return proto, nil
+}
+
+// DoCompiledFile takes a FunctionProto, as returned by CompileLua, and runs it in the LState. It is equivalent
+// to calling DoFile on the LState with the original source file.
+func DoCompiledFile(L *lua.LState, proto *lua.FunctionProto) error {
+	lfunc := L.NewFunctionFromProto(proto)
+	L.Push(lfunc)
+	return L.PCall(0, lua.MultRet, nil)
+}
+
+// Example shows how to share the compiled byte code from a lua script between multiple VMs.
+func codeToShareTest() {
+	codeToShare, _ := CompileLua("lua/codeToShare.lua")
+	a := lua.NewState()
+	b := lua.NewState()
+	c := lua.NewState()
+	DoCompiledFile(a, codeToShare)
+	DoCompiledFile(b, codeToShare)
+	DoCompiledFile(c, codeToShare)
 }
