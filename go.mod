@@ -43,6 +43,7 @@ require (
 	github.com/nats-io/nats.go v1.10.0 // indirect
 	github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762
 	github.com/otiai10/mint v1.2.4 // indirect
+	github.com/rabbitmq/amqp091-go v0.0.0-20210823000215-c428a6150891 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	github.com/robfig/cron v1.2.0
 	github.com/sciter-sdk/go-sciter v0.5.1-0.20200602150116-89a4dd09b0f8
