@@ -9,6 +9,15 @@ import (
 	"golang_test/module/amqp/util"
 )
 
+/** test case:
+./emit_log_direct info worker message 01...... && \
+./emit_log_direct error worker message 02...... && \
+./emit_log_direct warning worker message 03...... && \
+./emit_log_direct error worker message 04...... && \
+./emit_log_direct info worker message 05...... && \
+./emit_log_direct error worker message 06......
+*/
+
 func main() {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	util.FailOnError(err, "Failed to connect to RabbitMQ")
