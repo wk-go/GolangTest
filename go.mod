@@ -8,6 +8,8 @@ require (
 	github.com/JamesHovious/w32 v1.1.0
 	github.com/Unknwon/goconfig v0.0.0-20190425194916-3dba17dd7b9e // indirect
 	github.com/Unknwon/paginater v0.0.0-20170405233947-45e5d631308e
+	github.com/aluttik/go-crossplane v0.0.0-20210526174032-f987c53bd056 // indirect
+	github.com/araddon/gou v0.0.0-20190110011759-c797efecbb61 // indirect
 	github.com/astaxie/beego v1.11.1
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
 	github.com/beego/i18n v0.0.0-20161101132742-e9308947f407
@@ -27,6 +29,7 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/gotk3/gotk3 v0.0.0-20190620081259-6dcdf9e5c51e
+	github.com/hashicorp/hcl/v2 v2.10.1 // indirect
 	github.com/henrylee2cn/mahonia v0.0.0-20150715080413-be6deb105fbc
 	github.com/jinzhu/gorm v1.9.9
 	github.com/jroimartin/gocui v0.4.0
@@ -34,6 +37,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lucas-clemente/quic-go v0.20.1 // indirect
 	github.com/lxn/walk v0.0.0-20190619151032-86d8802c197a
+	github.com/lytics/confl v0.0.0-20200313154245-08c6aed5f53f // indirect
 	github.com/mattn/go-runewidth v0.0.4
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mholt/archiver/v3 v3.3.0 // indirect
