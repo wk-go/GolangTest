@@ -40,6 +40,10 @@ func ParseApacheVhost(s string) (vhosts []*ApacheVhost, err error) {
 			}
 
 			_regexp := _field.Tag.Get("regexp")
+			if _regexp == "" {
+				continue
+			}
+
 			if _field.Name == "PhpAdminValue" {
 				_regData := apacheGetStrings(_regexp, result[2])
 				vhosts[i].PhpAdminValue = make(map[string]string, len(_regData))
