@@ -44,10 +44,10 @@ func ParseApacheVhost(s string) (vhosts []*ApacheVhost, err error) {
 				continue
 			}
 
+			strSlice := getStrings(_regexp, result[2])
 			if _field.Name == "PhpAdminValue" {
-				_regData := apacheGetStrings(_regexp, result[2])
-				vhosts[i].PhpAdminValue = make(map[string]string, len(_regData))
-				for _, _val := range _regData {
+				vhosts[i].PhpAdminValue = make(map[string]string, len(strSlice))
+				for _, _val := range strSlice {
 					_s := strings.Split(_val[1], " ")
 					println(_val[1], _s)
 					_x := _s
@@ -55,17 +55,9 @@ func ParseApacheVhost(s string) (vhosts []*ApacheVhost, err error) {
 				}
 				continue
 			}
-			strSlice := getStrings(_regexp, result[2])
 			_v.FieldByName(_field.Name).Set(reflect.ValueOf(strSlice[0][1]))
 		}
 	}
 
 	return
-}
-func apacheGetStrings(_re, s string) [][]string {
-	re := regexp.MustCompile(_re)
-	if re == nil {
-		return [][]string{}
-	}
-	return re.FindAllStringSubmatch(s, -1)
 }
