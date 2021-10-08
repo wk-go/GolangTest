@@ -2,32 +2,20 @@ package conf_handle
 
 import (
 	"errors"
+	"reflect"
 	"regexp"
 	"strings"
 )
 
-var (
-	apacheVhostMap = map[string]string{
-		"Port":            "",
-		"ServerAdmin":     "ServerAdmin *?(.*?)\n",
-		"php_admin_value": "php_admin_value *?(.*?)\n",
-		"DocumentRoot":    "DocumentRoot *?(.*?)\n",
-		"ServerName":      "ServerName *?(.*?)\n",
-		"ErrorLog":        "ErrorLog *?(.*?)\n",
-		"CustomLog":       "CustomLog *?(.*?)\n",
-		"Directory":       "<Directory *?(.*?)>",
-	}
-)
-
 type ApacheVhost struct {
-	Port          string
-	ServerAdmin   string
-	PhpAdminValue map[string]string
-	DocumentRoot  string
-	ServerName    string
-	ErrorLog      string
-	CustomLog     string
-	Directory     string
+	Port          string            `json:"port" regexp:""`
+	ServerAdmin   string            `json:"server_admin" regexp:"ServerAdmin *?(.*?)\n"`
+	PhpAdminValue map[string]string `json:"php_admin_value" regexp:"php_admin_value *?(.*?)\n"`
+	DocumentRoot  string            `json:"document_root" regexp:"DocumentRoot *?(.*?)\n"`
+	ServerName    string            `json:"server_name" regexp:"ServerName *?(.*?)\n"`
+	ErrorLog      string            `json:"error_log" regexp:"ErrorLog *?(.*?)\n"`
+	CustomLog     string            `json:"custom_log" regexp:"CustomLog *?(.*?)\n"`
+	Directory     string            `json:"directory" regexp:"<Directory *?(.*?)>"`
 }
 
 func ParseApacheVhost(s string) (vhosts []*ApacheVhost, err error) {
@@ -43,18 +31,17 @@ func ParseApacheVhost(s string) (vhosts []*ApacheVhost, err error) {
 	for i, result := range resultVhost {
 		vhosts[i] = &ApacheVhost{}
 		vhosts[i].Port = result[1]
-		for key, _reg := range apacheVhostMap {
-			if _reg == "" {
+		_v := reflect.ValueOf(vhosts[i]).Elem()
+		_t := _v.Type()
+		for _i := 0; _i < _v.NumField(); _i++ {
+			_field := _t.Field(_i)
+			if _field.Name == "Port" {
 				continue
 			}
-			_regData := apacheGetStrings(_reg, result[2])
-			if len(_regData) == 0 {
-				continue
-			}
-			switch key {
-			case "ServerAdmin":
-				vhosts[i].ServerAdmin = _regData[0][1]
-			case "php_admin_value":
+
+			_regexp := _field.Tag.Get("regexp")
+			if _field.Name == "PhpAdminValue" {
+				_regData := apacheGetStrings(_regexp, result[2])
 				vhosts[i].PhpAdminValue = make(map[string]string, len(_regData))
 				for _, _val := range _regData {
 					_s := strings.Split(_val[1], " ")
@@ -62,17 +49,10 @@ func ParseApacheVhost(s string) (vhosts []*ApacheVhost, err error) {
 					_x := _s
 					vhosts[i].PhpAdminValue[_x[0]] = _x[1]
 				}
-			case "DocumentRoot":
-				vhosts[i].DocumentRoot = _regData[0][1]
-			case "ServerName":
-				vhosts[i].ServerName = _regData[0][1]
-			case "ErrorLog":
-				vhosts[i].ErrorLog = _regData[0][1]
-			case "CustomLog":
-				vhosts[i].CustomLog = _regData[0][1]
-			case "Directory":
-				vhosts[i].Directory = _regData[0][1]
+				continue
 			}
+			strSlice := getStrings(_regexp, result[2])
+			_v.FieldByName(_field.Name).Set(reflect.ValueOf(strSlice[0][1]))
 		}
 	}
 
