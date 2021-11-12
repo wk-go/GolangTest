@@ -15,6 +15,7 @@ require (
 	github.com/beego/i18n v0.0.0-20161101132742-e9308947f407
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/casbin/casbin/v2 v2.39.0 // indirect
 	github.com/chromedp/chromedp v0.5.3 // indirect
 	github.com/coreos/etcd v3.3.17+incompatible // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

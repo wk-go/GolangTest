@@ -1,0 +1,20 @@
+p, alice, data1, read
+p, bob, data2, write
+p, data_group_admin, data_group, write
+
+g, alice, data_group_admin
+g2, data1, data_group
+g2, data2, data_group
+
+
+p3, alice, /alice_data/*, GET
+p3, alice, /alice_data/resource1, POST
+
+p3, bob, /alice_data/resource2, GET
+p3, bob, /bob_data/*, POST
+
+p3, cathy, /cathy_data, (GET)|(POST)
+
+
+p4, r4.sub.Age > 18, /data1, read
+p4, r4.sub.Age < 60, /data2, write
