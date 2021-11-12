@@ -59,10 +59,11 @@ func main() {
 			fmt.Println(ptype, p)
 		}
 	}
+	eCtx4 := casbin.EnforceContext{"r4", "p4", "e4", "m4"}
 	sub1 := newTestSubject("alice", 16)
 	sub2 := newTestSubject("alice", 20)
 	sub3 := newTestSubject("alice", 65)
-	eCtx4 := casbin.EnforceContext{"r4", "p4", "e4", "m4"}
+	sub4 := newTestSubject("admin", 70)
 
 	testEnforce(e, false, eCtx4, sub1, "/data1", "read")
 	testEnforce(e, false, eCtx4, sub1, "/data2", "read")
@@ -76,6 +77,8 @@ func main() {
 	testEnforce(e, false, eCtx4, sub3, "/data2", "read")
 	testEnforce(e, false, eCtx4, sub3, "/data1", "write")
 	testEnforce(e, false, eCtx4, sub3, "/data2", "write")
+	testEnforce(e, true, eCtx4, sub4, "/data1", "read")
+	testEnforce(e, true, eCtx4, sub4, "/data2", "write")
 	fmt.Println("##########4:abac_model################")
 }
 
