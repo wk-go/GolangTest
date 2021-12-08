@@ -1,0 +1,15 @@
+PeerOrgs:
+  # ---------------------------------------------------------------------------
+  # Org
+  # ---------------------------------------------------------------------------
+  - Name: {{.Name}}
+    Domain: {{.Domain}}
+    EnableNodeOUs: {{.EnableNodeOUs}}
+    Template:
+      Count: {{.Template.Count}}
+      SANS:
+        {{- range $i, $v := .Template.SANS}}
+        - {{$v}}{{end}}
+    Users:
+      Count: {{.Users.Count}}
+
