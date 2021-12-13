@@ -2,8 +2,8 @@ package transtpl
 
 import (
 	"bytes"
-	"html/template"
 	"io/ioutil"
+	"text/template"
 )
 
 func TransitionFileToFile(src, dest string, data map[string]interface{}) (err error) {
