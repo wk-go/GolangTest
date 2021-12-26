@@ -8,13 +8,17 @@ require (
 	github.com/JamesHovious/w32 v1.1.0
 	github.com/Unknwon/goconfig v0.0.0-20190425194916-3dba17dd7b9e // indirect
 	github.com/Unknwon/paginater v0.0.0-20170405233947-45e5d631308e
+	github.com/aluttik/go-crossplane v0.0.0-20210526174032-f987c53bd056 // indirect
+	github.com/araddon/gou v0.0.0-20190110011759-c797efecbb61 // indirect
 	github.com/astaxie/beego v1.11.1
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
 	github.com/beego/i18n v0.0.0-20161101132742-e9308947f407
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/casbin/casbin/v2 v2.39.0 // indirect
 	github.com/chromedp/chromedp v0.5.3 // indirect
 	github.com/coreos/etcd v3.3.17+incompatible // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-contrib/multitemplate v0.0.0-20190528082104-30e424939505
 	github.com/gin-contrib/sessions v0.0.0-20190512062852-3cb4c4f2d615
@@ -22,11 +26,13 @@ require (
 	github.com/go-ini/ini v1.44.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-vgo/robotgo v0.0.0-20190623134552-a099d228ba3b
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gonutz/wui/v2 v2.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/gotk3/gotk3 v0.0.0-20190620081259-6dcdf9e5c51e
+	github.com/hashicorp/hcl/v2 v2.10.1 // indirect
 	github.com/henrylee2cn/mahonia v0.0.0-20150715080413-be6deb105fbc
 	github.com/jinzhu/gorm v1.9.9
 	github.com/jroimartin/gocui v0.4.0
@@ -34,6 +40,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lucas-clemente/quic-go v0.20.1 // indirect
 	github.com/lxn/walk v0.0.0-20190619151032-86d8802c197a
+	github.com/lytics/confl v0.0.0-20200313154245-08c6aed5f53f // indirect
 	github.com/mattn/go-runewidth v0.0.4
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mholt/archiver/v3 v3.3.0 // indirect
@@ -43,6 +50,7 @@ require (
 	github.com/nats-io/nats.go v1.10.0 // indirect
 	github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762
 	github.com/otiai10/mint v1.2.4 // indirect
+	github.com/rabbitmq/amqp091-go v0.0.0-20210823000215-c428a6150891 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	github.com/robfig/cron v1.2.0
 	github.com/sciter-sdk/go-sciter v0.5.1-0.20200602150116-89a4dd09b0f8
