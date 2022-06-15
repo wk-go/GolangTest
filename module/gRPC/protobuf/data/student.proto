@@ -7,5 +7,11 @@ option go_package = ".;data";
 message Student {
   string name = 1;
   bool male = 2;
-  repeated int32 scores = 3;
+  enum Gender{
+    UNKNOWN = 0;
+    MALE = 1;
+    FEMALE = 2;
+  }
+  Gender gender = 3;
+  repeated int32 scores = 4;
 }

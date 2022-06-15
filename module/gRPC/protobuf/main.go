@@ -10,6 +10,7 @@ func main() {
 	test := &protodata.Student{
 		Name:   "geektutu",
 		Male:   true,
+		Gender: protodata.Student_MALE,
 		Scores: []int32{98, 85, 88},
 	}
 	data, err := proto.Marshal(test)
