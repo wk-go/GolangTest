@@ -71,8 +71,7 @@ require (
 	golang.org/x/sys v0.0.0-20210415045647-66c3f260301c // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	google.golang.org/genproto v0.0.0-20210416161957-9910b6c460de // indirect
-	google.golang.org/grpc v1.37.0 // indirect
-	google.golang.org/protobuf v1.26.0 // indirect
+	google.golang.org/grpc v1.47.0 // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/ini.v1 v1.44.0 // indirect
