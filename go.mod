@@ -1,6 +1,6 @@
 module golang_test
 
-go 1.13
+go 1.18
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
