@@ -19,15 +19,20 @@ var isOver = make(chan struct{})
 var WG sync.WaitGroup
 
 func main() {
-	var rarFile, passwordFile, outPath string
+	var rarFile, passwordFile, outPath, mode, symbols string
+	var length, minLength, maxLength int
+	flag.StringVar(&mode, "mode", "dict", "mode:dict,exhaustivity")
 	flag.StringVar(&rarFile, "f", "", "rar file path")
 	flag.StringVar(&passwordFile, "password-file", "", "password file path")
 	flag.StringVar(&outPath, "o", "./test", "rar file path")
+	flag.StringVar(&symbols, "symbols", "", "穷举字符")
+	flag.IntVar(&length, "length", 5, "穷举模式下固定长度")
+	flag.IntVar(&minLength, "min-length", 0, "穷举模式下长度区间最短长度")
+	flag.IntVar(&maxLength, "max-length", 0, "穷举模式下长度区间最长长度")
 	flag.Parse()
 
-	if passwordFile != "" {
-		passwdFile := NewPasswordFile(passwordFile)
-		go passwdFile.GetPassword(password)
+	if rarFile == "" {
+		return
 	}
 	if outPath != "" {
 		dir, err := ioutil.ReadDir(outPath)
@@ -39,10 +44,42 @@ func main() {
 			os.RemoveAll(path.Join(outPath, d.Name()))
 		}
 	}
-	if rarFile == "" {
-		return
+
+	// 密码字典模式
+	if mode == "dict" {
+		if passwordFile != "" {
+			passwdFile := NewPasswordFile(passwordFile)
+			go passwdFile.GetPassword(password)
+		}
 	}
 
+	//穷举模式
+	if mode == "exhaustivity" {
+		pw := NewPassword()
+		if symbols != "" {
+			pw.SetSymbols(symbols)
+		}
+		var gen func(chan string)
+		if length > 0 && minLength == 0 && maxLength == 0 {
+			gen = pw.GeneratePassword(length)
+		}
+		if minLength > 0 && maxLength > 0 {
+			pw.MinLength = minLength
+			pw.MaxLength = maxLength
+			gen = pw.GeneratePasswordRange()
+		}
+		go func() {
+			gen(password)
+			isOver <- struct{}{}
+		}()
+	}
+
+	handle(rarFile, outPath)
+
+	WG.Wait()
+}
+
+func handle(rarFile, outPath string) {
 Loop:
 	for {
 		select {
@@ -52,7 +89,6 @@ Loop:
 			break Loop
 		}
 	}
-	WG.Wait()
 }
 
 func Decipher(rarFile, password, outPath string) {
@@ -94,4 +130,81 @@ func (p *PasswordFile) GetPassword(password chan string) {
 }
 
 type Password struct {
+	Symbol    string
+	symbolLen int
+	Length    int
+	MaxLength int
+	MinLength int
+}
+
+func NewPassword() *Password {
+	p := &Password{}
+	p.SetSymbols("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
+	return p
+}
+
+func (p *Password) GeneratePassword(length int) func(password chan string) {
+	if length == 0 {
+		length = p.Length
+	}
+	if length == 0 {
+		return nil
+	}
+	return func(password chan string) {
+		lenSlice := make([]int, length)
+		symbolLen := p.symbolLen
+		passwd := make([]byte, length)
+		posFlag := 0
+		breakFlag := 0
+	For:
+		for {
+			breakFlag = 0
+			for i, v := range lenSlice {
+
+				passwd[i] = p.Symbol[v]
+				if (v + 1) == symbolLen {
+					breakFlag++
+				}
+				if breakFlag == len(lenSlice) {
+					break For
+				}
+			}
+			password <- string(passwd)
+			for i, _ := range lenSlice {
+				if i == 0 {
+					lenSlice[i]++
+					if lenSlice[i] >= symbolLen {
+						posFlag = 1
+						lenSlice[i] = lenSlice[i] % symbolLen
+					}
+					continue
+				}
+				if posFlag > 0 {
+					lenSlice[i] += posFlag
+					posFlag = 0
+					if lenSlice[i] >= symbolLen {
+						posFlag = 1
+						lenSlice[i] = lenSlice[i] % symbolLen
+					}
+				}
+			}
+		}
+	}
+}
+
+func (p *Password) GeneratePasswordRange() func(password chan string) {
+	return func(password chan string) {
+		for i := p.MinLength; i <= p.MaxLength; i++ {
+			gen := p.GeneratePassword(i)
+			gen(password)
+		}
+	}
+}
+
+func (p *Password) SetSymbols(s string) {
+	if len(s) == 0 {
+		return
+	}
+	p.Symbol = s
+	p.symbolLen = len(s)
 }
